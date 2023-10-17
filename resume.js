@@ -4151,7 +4151,11 @@ function dbg(text) {
 
   var _glfwDestroyWindow = (winid) => GLFW.destroyWindow(winid);
 
+  var _glfwFocusWindow = (winid) => {};
+
   var _glfwGetClipboardString = (win) => {};
+
+  var _glfwGetCurrentContext = () => GLFW.active ? GLFW.active.id : 0;
 
   var _glfwGetCursorPos = (winid, x, y) => GLFW.getCursorPos(winid, x, y);
 
@@ -4219,7 +4223,45 @@ function dbg(text) {
 
   var _glfwGetKey = (winid, key) => GLFW.getKey(winid, key);
 
+  var _glfwGetMonitorContentScale = (monitor, x, y) => {
+      HEAPF32[((x)>>2)] = GLFW.scale;
+      HEAPF32[((y)>>2)] = GLFW.scale;
+    };
+
+  var _glfwGetMonitorPos = (monitor, x, y) => {
+      HEAP32[((x)>>2)] = 0;
+      HEAP32[((y)>>2)] = 0;
+    };
+
+  var _glfwGetMonitorWorkarea = (monitor, x, y, w, h) => {
+      HEAP32[((x)>>2)] = 0;
+      HEAP32[((y)>>2)] = 0;
+  
+      HEAP32[((w)>>2)] = screen.availWidth;
+      HEAP32[((h)>>2)] = screen.availHeight;
+    };
+
+  
+  var _glfwGetMonitors = (count) => {
+      HEAP32[((count)>>2)] = 1;
+      if (!GLFW.monitors) {
+        GLFW.monitors = _malloc(4);
+        HEAP32[((GLFW.monitors)>>2)] = 1;
+      }
+      return GLFW.monitors;
+    };
+
   var _glfwGetTime = () => GLFW.getTime() - GLFW.initialTime;
+
+  var _glfwGetVideoMode = (monitor) => 0;
+
+  var _glfwGetWindowAttrib = (winid, attrib) => {
+      var win = GLFW.WindowFromId(winid);
+      if (!win) return 0;
+      return win.attributes[attrib];
+    };
+
+  var _glfwGetWindowPos = (winid, x, y) => GLFW.getWindowPos(winid, x, y);
 
   var _glfwGetWindowSize = (winid, width, height) => GLFW.getWindowSize(winid, width, height);
 
@@ -4315,6 +4357,8 @@ function dbg(text) {
 
   var _glfwSetScrollCallback = (winid, cbfun) => GLFW.setScrollCallback(winid, cbfun);
 
+  var _glfwSetWindowCloseCallback = (winid, cbfun) => GLFW.setWindowCloseCallback(winid, cbfun);
+
   var _glfwSetWindowFocusCallback = (winid, cbfun) => {
       var win = GLFW.WindowFromId(winid);
       if (!win) return null;
@@ -4322,6 +4366,26 @@ function dbg(text) {
       win.windowFocusFunc = cbfun;
       return prevcbfun;
     };
+
+  var _glfwSetWindowOpacity = (winid, opacity) => { /* error */ };
+
+  var _glfwSetWindowPos = (winid, x, y) => GLFW.setWindowPos(winid, x, y);
+
+  var _glfwSetWindowPosCallback = (winid, cbfun) => {
+      var win = GLFW.WindowFromId(winid);
+      if (!win) return null;
+      var prevcbfun = win.windowPosFunc;
+      win.windowPosFunc = cbfun;
+      return prevcbfun;
+    };
+
+  var _glfwSetWindowSize = (winid, width, height) => GLFW.setWindowSize(winid, width, height);
+
+  var _glfwSetWindowSizeCallback = (winid, cbfun) => GLFW.setWindowSizeCallback(winid, cbfun);
+
+  var _glfwSetWindowTitle = (winid, title) => GLFW.setWindowTitle(winid, title);
+
+  var _glfwShowWindow = (winid) => {};
 
   var _glfwSwapBuffers = (winid) => GLFW.swapBuffers(winid);
 
@@ -4516,7 +4580,11 @@ var wasmImports = {
   /** @export */
   glfwDestroyWindow: _glfwDestroyWindow,
   /** @export */
+  glfwFocusWindow: _glfwFocusWindow,
+  /** @export */
   glfwGetClipboardString: _glfwGetClipboardString,
+  /** @export */
+  glfwGetCurrentContext: _glfwGetCurrentContext,
   /** @export */
   glfwGetCursorPos: _glfwGetCursorPos,
   /** @export */
@@ -4530,7 +4598,21 @@ var wasmImports = {
   /** @export */
   glfwGetKey: _glfwGetKey,
   /** @export */
+  glfwGetMonitorContentScale: _glfwGetMonitorContentScale,
+  /** @export */
+  glfwGetMonitorPos: _glfwGetMonitorPos,
+  /** @export */
+  glfwGetMonitorWorkarea: _glfwGetMonitorWorkarea,
+  /** @export */
+  glfwGetMonitors: _glfwGetMonitors,
+  /** @export */
   glfwGetTime: _glfwGetTime,
+  /** @export */
+  glfwGetVideoMode: _glfwGetVideoMode,
+  /** @export */
+  glfwGetWindowAttrib: _glfwGetWindowAttrib,
+  /** @export */
+  glfwGetWindowPos: _glfwGetWindowPos,
   /** @export */
   glfwGetWindowSize: _glfwGetWindowSize,
   /** @export */
@@ -4564,7 +4646,23 @@ var wasmImports = {
   /** @export */
   glfwSetScrollCallback: _glfwSetScrollCallback,
   /** @export */
+  glfwSetWindowCloseCallback: _glfwSetWindowCloseCallback,
+  /** @export */
   glfwSetWindowFocusCallback: _glfwSetWindowFocusCallback,
+  /** @export */
+  glfwSetWindowOpacity: _glfwSetWindowOpacity,
+  /** @export */
+  glfwSetWindowPos: _glfwSetWindowPos,
+  /** @export */
+  glfwSetWindowPosCallback: _glfwSetWindowPosCallback,
+  /** @export */
+  glfwSetWindowSize: _glfwSetWindowSize,
+  /** @export */
+  glfwSetWindowSizeCallback: _glfwSetWindowSizeCallback,
+  /** @export */
+  glfwSetWindowTitle: _glfwSetWindowTitle,
+  /** @export */
+  glfwShowWindow: _glfwShowWindow,
   /** @export */
   glfwSwapBuffers: _glfwSwapBuffers,
   /** @export */
