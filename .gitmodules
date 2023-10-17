@@ -3,5 +3,6 @@
 	url = https://github.com/emscripten-core/emsdk.git
 
 [submodule "Dear ImGui"]
-	path = DearImGui
-	url = https://github.com/ocornut/imgui/tree/v1.89.9
+	path = imgui
+	url = https://github.com/ocornut/imgui
+        branch = v1.89.9
