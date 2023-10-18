@@ -1,6 +1,7 @@
 // NOTE(WALKER): This resume was built using imgui/examples/example_glfw_opengl3 folder as the basis.
 //               The rest was modified from there to include my resume information as a software engineer.
 
+
 #include "imgui.h"
 #include "imgui_impl_glfw.h"
 #include "imgui_impl_opengl3.h"
@@ -59,7 +60,7 @@ int main(int, char**)
 #endif
 
     // Create window with graphics context
-    GLFWwindow* window = glfwCreateWindow(1280, 720, "Walker Williams Resume", nullptr, nullptr);
+    GLFWwindow* window = glfwCreateWindow(1920, 1080, "Walker Williams Resume", nullptr, nullptr);
     if (window == nullptr)
         return 1;
     glfwMakeContextCurrent(window);
