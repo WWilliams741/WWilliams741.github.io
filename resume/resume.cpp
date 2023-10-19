@@ -1,7 +1,6 @@
 // NOTE(WALKER): This resume was built using imgui/examples/example_glfw_opengl3 folder as the basis.
 //               The rest was modified from there to include my resume information as a software engineer.
 
-
 #include "imgui.h"
 #include "imgui_impl_glfw.h"
 #include "imgui_impl_opengl3.h"
@@ -61,7 +60,6 @@ int main(int, char**) {
 
     // Create window with graphics context
     GLFWwindow* window = glfwCreateWindow(1280, 720, "Walker Williams Resume", nullptr, nullptr);
-    // GLFWwindow* window = glfwCreateWindow(1920, 1080, "Walker Williams Resume", nullptr, nullptr);
     if (window == nullptr)
         return 1;
     glfwMakeContextCurrent(window);
@@ -123,10 +121,21 @@ int main(int, char**) {
             window_flags |= ImGuiWindowFlags_NoCollapse;
             const ImGuiViewport* main_viewport = ImGui::GetMainViewport();
             ImGui::SetNextWindowPos(ImVec2(main_viewport->WorkPos.x + 0, main_viewport->WorkPos.y + 0), ImGuiCond_FirstUseEver);
-            ImGui::SetNextWindowSize(ImVec2(1920, 1080), ImGuiCond_FirstUseEver);
+            ImGui::SetNextWindowSize(ImVec2(1280, 720), ImGuiCond_FirstUseEver);
 
             ImGui::Begin("Resume", nullptr, window_flags);
             defer { ImGui::End(); };
+
+            // Theme picker:
+            static int style_idx = 0;
+            if (ImGui::Combo("Theme", &style_idx, "Dark\0Light\0"))
+            {
+                switch (style_idx)
+                {
+                case 0: ImGui::StyleColorsDark(); break;
+                case 1: ImGui::StyleColorsLight(); break;
+                }
+            }
 
             // Sections:
             if (ImGui::BeginTabBar("Sections"))
@@ -297,9 +306,6 @@ int main(int, char**) {
                     }
                 }
             }
-
-            ImGui::Separator();
-            ImGui::TextWrapped("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / io.Framerate, io.Framerate);
         }
 
         // Rendering
