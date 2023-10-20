@@ -11,10 +11,15 @@
 #endif
 #include <GLFW/glfw3.h> // Will drag system OpenGL headers
 
+#include "../emscripten-browser-clipboard/emscripten_browser_clipboard.h"
 #include "defer.hpp" // NOTE(WALKER): Custom defer macro used to make code sleaker and more readable when using imgui (especially begin()/end() pairs)
 
 // NOTE(WALKER): This is a nice hack to get wrapped bullet text, not low level or deep, but it works well enough
 #define IMGUI_BULLETTEXTWRAPPED(fmt_str, ...) ImGui::BulletText(""); ImGui::SameLine(); ImGui::TextWrapped(fmt_str, ##__VA_ARGS__)
+
+void set_clipboard(void* data, const char* text) {
+    emscripten_browser_clipboard::copy(text);
+}
 
 // [Win32] Our example includes a copy of glfw3.lib pre-compiled with VS2010 to maximize ease of testing and compatibility with old VS compilers.
 // To link with VS2010-era libraries, VS2015+ requires linking with legacy_stdio_definitions.lib, which we do using this pragma.
@@ -31,6 +36,9 @@
 static void glfw_error_callback(int error, const char* description) {
     fprintf(stderr, "GLFW Error %d: %s\n", error, description);
 }
+
+// NOTE(WALKER): This is the way ImGui does its font stuff so I put this here, not quite why this needs a namespace wrap though
+namespace ImGui { IMGUI_API void ShowFontAtlas(ImFontAtlas* atlas); }
 
 // Main code
 int main(int, char**) {
@@ -62,7 +70,9 @@ int main(int, char**) {
 #endif
 
     // Create window with graphics context
-    GLFWwindow* window = glfwCreateWindow(1280, 720, "Walker Williams Resume", nullptr, nullptr);
+    // GLFWwindow* window = glfwCreateWindow(3840, 2160, "Walker Williams Resume", nullptr, nullptr);
+    GLFWwindow* window = glfwCreateWindow(1920, 1080, "Walker Williams Resume", nullptr, nullptr);
+    // GLFWwindow* window = glfwCreateWindow(1280, 720,  "Walker Williams Resume", nullptr, nullptr);
     if (window == nullptr)
         return 1;
     glfwMakeContextCurrent(window);
@@ -79,6 +89,9 @@ int main(int, char**) {
     //io.ConfigViewportsNoAutoMerge = true;
     //io.ConfigViewportsNoTaskBarIcon = true;
 
+    // Set clipboard copy function:
+    io.SetClipboardTextFn = set_clipboard;
+
     // Setup Dear ImGui style
     ImGui::StyleColorsDark();
 
@@ -92,6 +105,16 @@ int main(int, char**) {
     // Setup Platform/Renderer backends
     ImGui_ImplGlfw_InitForOpenGL(window, true);
     ImGui_ImplOpenGL3_Init(glsl_version);
+
+    // io.Fonts->AddFontDefault();
+    // ImFontConfig config;
+    // config.OversampleH = 2;
+    // config.OversampleV = 1;
+    // config.GlyphExtraSpacing.x = 1.0f;
+    io.Fonts->AddFontFromFileTTF("fonts/JetBrainsMono-Regular.ttf", 26.0f);
+    io.Fonts->AddFontFromFileTTF("fonts/LinLibertine_RBah.ttf", 26.0f);
+    io.Fonts->AddFontFromFileTTF("fonts/times new roman.ttf", 26.0f);
+    io.Fonts->AddFontFromFileTTF("fonts/ProggyClean.ttf", 26.0f);
 
     // Our state
     ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
@@ -113,38 +136,50 @@ int main(int, char**) {
         ImGui_ImplGlfw_NewFrame();
         ImGui::NewFrame();
 
-        // Demo Window:
-        // ImGui::ShowDemoWindow();
-
         {
             ImGuiWindowFlags window_flags = 0;
-            window_flags |= ImGuiWindowFlags_NoTitleBar;
+            // window_flags |= ImGuiWindowFlags_NoTitleBar;
             window_flags |= ImGuiWindowFlags_NoMove;
             window_flags |= ImGuiWindowFlags_NoResize;
             window_flags |= ImGuiWindowFlags_NoCollapse;
+            window_flags |= ImGuiWindowFlags_MenuBar;
             const ImGuiViewport* main_viewport = ImGui::GetMainViewport();
             ImGui::SetNextWindowPos(ImVec2(main_viewport->WorkPos.x + 0, main_viewport->WorkPos.y + 0), ImGuiCond_FirstUseEver);
-            ImGui::SetNextWindowSize(ImVec2(1280, 720), ImGuiCond_FirstUseEver);
+            // ImGui::SetNextWindowSize(ImVec2(3840, 2160), ImGuiCond_FirstUseEver);
+            ImGui::SetNextWindowSize(ImVec2(1920, 1080), ImGuiCond_FirstUseEver);
+            // ImGui::SetNextWindowSize(ImVec2(1280, 720), ImGuiCond_FirstUseEver);
 
-            ImGui::Begin("Resume", nullptr, window_flags);
+            ImGui::Begin("Walker Williams Resume", nullptr, window_flags);
             defer { ImGui::End(); };
 
-            // Theme picker:
-            static int style_idx = 0;
-            if (ImGui::Combo("Theme", &style_idx, "Dark\0Light\0"))
-            {
-                switch (style_idx)
-                {
-                case 0: ImGui::StyleColorsDark(); break;
-                case 1: ImGui::StyleColorsLight(); break;
+            if (ImGui::BeginMenuBar()) {
+                defer { ImGui::EndMenuBar(); };
+                // Theme picker:
+                if (ImGui::BeginMenu("Theme")) {
+                    defer { ImGui::EndMenu(); };
+                    static int theme_idx = 0;
+                    if (ImGui::Combo(" ", &theme_idx, "Dark\0Light\0")) {
+                        switch (theme_idx) {
+                        case 0: ImGui::StyleColorsDark(); break;
+                        case 1: ImGui::StyleColorsLight(); break;
+                        }
+                    }
+                }
+                // Font picker:
+                if (ImGui::BeginMenu("Font")) {
+                    defer { ImGui::EndMenu(); };
+                    ImGui::ShowFontAtlas(io.Fonts);
                 }
             }
 
             // Sections:
-            if (ImGui::BeginTabBar("Sections"))
-            {
+            if (ImGui::BeginTabBar("Sections")) {
                 defer { ImGui::EndTabBar(); };
-                // Skills function:
+                if (ImGui::BeginTabItem("About", nullptr, ImGuiTabItemFlags_None)) {
+                    defer { ImGui::EndTabItem(); };
+                    ImGui::TextWrapped("Hello, my name is Walker Williams. I am a very passionate programmer and this is my resume, written in C++ and put on the web for you, recruiter, potential employer, or casual viewer, to look through. Thanks for stopping by, enjoy.");
+                }
+                // Skills:
                 if (ImGui::BeginTabItem("Skills", nullptr, ImGuiTabItemFlags_None)) {
                     defer { ImGui::EndTabItem(); };
                     int open_action = -1;
@@ -153,79 +188,97 @@ int main(int, char**) {
                     ImGui::SameLine();
                     if (ImGui::Button("Close all"))
                         open_action = 0;
-                    // Languages:
-                    if (open_action != -1)
-                        ImGui::SetNextItemOpen(open_action != 0);
-                    if (ImGui::TreeNode("C++ (master)")) {
-                        defer { ImGui::TreePop(); };
-                        IMGUI_BULLETTEXTWRAPPED("C++ is my main language besides Jai");
-                        IMGUI_BULLETTEXTWRAPPED("This resume is written in C++ thanks to the power of Dear ImGui and Emscripten");
-                        IMGUI_BULLETTEXTWRAPPED("I have developed, from scratch solo, critical projects/architecture in C++, with no guidance");
-                        IMGUI_BULLETTEXTWRAPPED("The above projects were all multi-threaded environments");
-                        IMGUI_BULLETTEXTWRAPPED("I was well known at FlexGen Power Systems as one of their best C++ programmers, not even a linter was used without my approval");
-                        IMGUI_BULLETTEXTWRAPPED("I know C++11, C++17 and C++20. C++20 is my favorite");
-                        IMGUI_BULLETTEXTWRAPPED("Familiar with the STL, Generic Programming, creating custom allocators/memory management, etc.");
-                    }
-                    if (open_action != -1)
-                        ImGui::SetNextItemOpen(open_action != 0);
-                    if (ImGui::TreeNode("golang (intermediate)")) {
-                        defer { ImGui::TreePop(); };
-                        IMGUI_BULLETTEXTWRAPPED("I know golang enough to write code in it comfortably. I still have to look things up every now and then");                IMGUI_BULLETTEXTWRAPPED("I have mentored a new engineer to rewrite a core codebase from scratch in golang");
-                    }
-                    if (open_action != -1)
-                        ImGui::SetNextItemOpen(open_action != 0);
-                    if (ImGui::TreeNode("python (intermediate)")) {
-                        defer { ImGui::TreePop(); };
-                        IMGUI_BULLETTEXTWRAPPED("I know python at a scripting language level");
-                        IMGUI_BULLETTEXTWRAPPED("I have written python scripts before in a professional environment");
-                    }
-                    if (open_action != -1)
-                        ImGui::SetNextItemOpen(open_action != 0);
-                    if (ImGui::TreeNode("Jai (intermediate)")) {
-                        defer { ImGui::TreePop(); };
-                        IMGUI_BULLETTEXTWRAPPED("Currently a member of the closed beta for Jai programming language");
-                        IMGUI_BULLETTEXTWRAPPED("Beta access is not easily given out, you have to prove you're worthy of being given access");
-                        IMGUI_BULLETTEXTWRAPPED("Only a couple hundred other people are in the beta");
-                        IMGUI_BULLETTEXTWRAPPED("Beta is run by Jonathan Blow, creator of best selling games \"Braid\" and \"The Witness\"");
-                    }
-                    // Non-language stuff:
-                    if (open_action != -1)
-                        ImGui::SetNextItemOpen(open_action != 0);
-                    if (ImGui::TreeNode("Software Development Practices")) {
-                        defer { ImGui::TreePop(); };
+                    {
+                        ImGui::BeginChild("Scroll");
+                        defer { ImGui::EndChild(); };
+
+                        // Languages:
                         if (open_action != -1)
                             ImGui::SetNextItemOpen(open_action != 0);
-                        if (ImGui::TreeNode("Agile Development")) {
+                        if (ImGui::TreeNode("C++ (master)")) {
                             defer { ImGui::TreePop(); };
-                            IMGUI_BULLETTEXTWRAPPED("From filling out Jira tickets to inputing documentation in Markdown on Confluence or Github Wiki pages, I've done it all");
-                            IMGUI_BULLETTEXTWRAPPED("Jira boards and filling out tickets");
-                            IMGUI_BULLETTEXTWRAPPED("Markdown documentation on Confluence/Altissian");
-                            IMGUI_BULLETTEXTWRAPPED("CI (Continuous Integration) using Github PRs (Pull Requests) and Jenkins/AWS");
-                            IMGUI_BULLETTEXTWRAPPED("SCRUM meetings twice a week to check in on progress and potential blockers");
-                            IMGUI_BULLETTEXTWRAPPED("Sprints that last 1 month+ with pre-planning");
+                            IMGUI_BULLETTEXTWRAPPED("C++ is my main language besides Jai");
+                            IMGUI_BULLETTEXTWRAPPED("This resume is written in C++ thanks to the power of Dear ImGui and Emscripten");
+                            IMGUI_BULLETTEXTWRAPPED("I have developed, from scratch solo, critical projects/architecture in C++, with no guidance");
+                            IMGUI_BULLETTEXTWRAPPED("The above projects were all multi-threaded environments");
+                            IMGUI_BULLETTEXTWRAPPED("I was well known at FlexGen Power Systems as one of their best C++ programmers, not even a linter was used without my approval");
+                            IMGUI_BULLETTEXTWRAPPED("I know C++11, C++17 and C++20. C++20 is my favorite");
+                            IMGUI_BULLETTEXTWRAPPED("Familiar with the STL, Generic Programming, creating custom allocators/memory management, etc.");
                         }
                         if (open_action != -1)
                             ImGui::SetNextItemOpen(open_action != 0);
-                        if (ImGui::TreeNode("Performance Aware Programming")) {
+                        if (ImGui::TreeNode("golang (intermediate)")) {
                             defer { ImGui::TreePop(); };
-                            IMGUI_BULLETTEXTWRAPPED("I am NOT afraid of memory and low level programming");
-                            IMGUI_BULLETTEXTWRAPPED("I am PRO creating custom allocators");
-                            IMGUI_BULLETTEXTWRAPPED("I am PRO understanding how your program acesses memory and how that relates to CPU caches and RAM (L1, L2, L3, main memory cache misses and their costs");
-                            IMGUI_BULLETTEXTWRAPPED("I am PRO SUA (Shutup Use Array), 99%% of the time. The last 1%% is usually a flat Hash Table");
-                            IMGUI_BULLETTEXTWRAPPED("I am PRO writing software from scratch, from an empty main() and doing many iterations");
-                            IMGUI_BULLETTEXTWRAPPED("These above princples I have used in professional environments to great success");
+                            IMGUI_BULLETTEXTWRAPPED("I know golang enough to write code in it comfortably. I still have to look things up every now and then");                IMGUI_BULLETTEXTWRAPPED("I have mentored a new engineer to rewrite a core codebase from scratch in golang");
                         }
-                    }
-                    if (open_action != -1)
-                        ImGui::SetNextItemOpen(open_action != 0);
-                    if (ImGui::TreeNode("Software Development Environment/Tools")) {
-                        defer { ImGui::TreePop(); };
-                        IMGUI_BULLETTEXTWRAPPED("Docker for simulatating distributed systems and networks. docker-compose and Dockerfiles are nice tools");
-                        IMGUI_BULLETTEXTWRAPPED("Focus editor, VS Code editor, etc.");
-                        IMGUI_BULLETTEXTWRAPPED("Linux environment (CentOS7 - RHEL)");
+                        if (open_action != -1)
+                            ImGui::SetNextItemOpen(open_action != 0);
+                        if (ImGui::TreeNode("python (intermediate)")) {
+                            defer { ImGui::TreePop(); };
+                            IMGUI_BULLETTEXTWRAPPED("I know python at a scripting language level");
+                            IMGUI_BULLETTEXTWRAPPED("I have written python scripts before in a professional environment");
+                        }
+                        if (open_action != -1)
+                            ImGui::SetNextItemOpen(open_action != 0);
+                        if (ImGui::TreeNode("Jai (intermediate)")) {
+                            defer { ImGui::TreePop(); };
+                            IMGUI_BULLETTEXTWRAPPED("Currently a member of the closed beta for Jai programming language");
+                            IMGUI_BULLETTEXTWRAPPED("Beta access is not easily given out, you have to prove you're worthy of being given access");
+                            IMGUI_BULLETTEXTWRAPPED("Only a couple hundred other people are in the beta");
+                            IMGUI_BULLETTEXTWRAPPED("Beta is run by Jonathan Blow, creator of best selling games \"Braid\" and \"The Witness\"");
+
+                            // TODO(WALKER): Figure out how to get a Jai link into the user's clipboard, almost there
+                            // if (ImGui::Selectable(names[n], selected == n))
+                            //     selected = n;
+                            // if (ImGui::BeginPopupContextItem()) {
+                            //     ImGui::Text("This a popup!");
+                            //     if (ImGui::Button("Copy Link")) {
+                            //         emscripten_browser_clipboard::copy("Hello copy world!");
+                            //         ImGui::CloseCurrentPopup();
+                            //     }
+                            //     ImGui::EndPopup();
+                            // }
+                            // ImGui::SetItemTooltip("Right-click to copy Jai's community wiki link");
+                        }
+                        // Non-language stuff:
+                        if (open_action != -1)
+                            ImGui::SetNextItemOpen(open_action != 0);
+                        if (ImGui::TreeNode("Software Development Practices")) {
+                            defer { ImGui::TreePop(); };
+                            if (open_action != -1)
+                                ImGui::SetNextItemOpen(open_action != 0);
+                            if (ImGui::TreeNode("Agile Development")) {
+                                defer { ImGui::TreePop(); };
+                                IMGUI_BULLETTEXTWRAPPED("From filling out Jira tickets to inputing documentation in Markdown on Confluence or Github Wiki pages, I've done it all");
+                                IMGUI_BULLETTEXTWRAPPED("Jira boards and filling out tickets");
+                                IMGUI_BULLETTEXTWRAPPED("Markdown documentation on Confluence/Altissian");
+                                IMGUI_BULLETTEXTWRAPPED("CI (Continuous Integration) using Github PRs (Pull Requests) and Jenkins/AWS");
+                                IMGUI_BULLETTEXTWRAPPED("SCRUM meetings twice a week to check in on progress and potential blockers");
+                                IMGUI_BULLETTEXTWRAPPED("Sprints that last 1 month+ with pre-planning");
+                            }
+                            if (open_action != -1)
+                                ImGui::SetNextItemOpen(open_action != 0);
+                            if (ImGui::TreeNode("Performance Aware Programming")) {
+                                defer { ImGui::TreePop(); };
+                                IMGUI_BULLETTEXTWRAPPED("I am NOT afraid of memory and low level programming");
+                                IMGUI_BULLETTEXTWRAPPED("I am PRO creating custom allocators");
+                                IMGUI_BULLETTEXTWRAPPED("I am PRO understanding how your program acesses memory and how that relates to CPU caches and RAM (L1, L2, L3, main memory cache misses and their costs");
+                                IMGUI_BULLETTEXTWRAPPED("I am PRO SUA (Shutup Use Array), 99%% of the time. The last 1%% is usually a flat Hash Table");
+                                IMGUI_BULLETTEXTWRAPPED("I am PRO writing software from scratch, from an empty main() and doing many iterations");
+                                IMGUI_BULLETTEXTWRAPPED("These above princples I have used in professional environments to great success");
+                            }
+                        }
+                        if (open_action != -1)
+                            ImGui::SetNextItemOpen(open_action != 0);
+                        if (ImGui::TreeNode("Software Development Environment/Tools")) {
+                            defer { ImGui::TreePop(); };
+                            IMGUI_BULLETTEXTWRAPPED("Docker for simulatating distributed systems and networks");
+                            IMGUI_BULLETTEXTWRAPPED("Dockerfiles and docker-compose are nice tools");
+                            IMGUI_BULLETTEXTWRAPPED("Linux environments are my goto, but Windows is alright");
+                        }
                     }
                 }
-                // Experience function:
+                // Work Experience:
                 if (ImGui::BeginTabItem("Work Experience", nullptr, ImGuiTabItemFlags_None)) {
                     defer { ImGui::EndTabItem(); };
                     int open_action = -1;
@@ -234,26 +287,31 @@ int main(int, char**) {
                     ImGui::SameLine();
                     if (ImGui::Button("Close all"))
                         open_action = 0;
-                    if (open_action != -1)
-                        ImGui::SetNextItemOpen(open_action != 0);
-                    if (ImGui::TreeNode("Software Engineer - FlexGen Power Systems (2020 -> 2023)")) {
-                        defer { ImGui::TreePop(); };
+                    {
+                        ImGui::BeginChild("Scroll");
+                        defer { ImGui::EndChild(); };
 
-                        IMGUI_BULLETTEXTWRAPPED("Languages: C/C++11/17, golang, python, Bash");
-                        IMGUI_BULLETTEXTWRAPPED("Joined FlexGen fresh out of college, my first job");
-                        IMGUI_BULLETTEXTWRAPPED("FlexGen specializes in BESSs (Battery Energy Storage Systems), a form of distributed systems with lots of networking");
-                        IMGUI_BULLETTEXTWRAPPED("I developed, along with 3 other people, FlexGen's ESS (Energy Storage System) Controller. This is one of their most important pieces of software and their lowest level controller");
-                        IMGUI_BULLETTEXTWRAPPED("Because of the above point, FlexGen became a multi-million dollar success story, all of the software I wrote is still active today earning them millions more");
-                        IMGUI_BULLETTEXTWRAPPED("I have rewritten core piece of code architecture for this company, from scratch, often solo and with the blessing of management");
-                        IMGUI_BULLETTEXTWRAPPED("I have written their entire deployment/installation process originally in Bash. Later this was converted to Ansible by an entire team");
-                        IMGUI_BULLETTEXTWRAPPED("I have made significant performance improvements across their whole system by rewriting the core IPC architecture that underlies everything. An end to end all possible input test went from 1 week down to 1 day or less");
-                        IMGUI_BULLETTEXTWRAPPED("I have also rewritten core Modbus communication software that is used throughout the entire distributed network, bringing the CPU usage down from 112%% to 1-3%% in our largest use cases and increasing networking performance by about 2-3 times");
-                        IMGUI_BULLETTEXTWRAPPED("Because of the above achievements FlexGen was able to properly scale to larger sites beyond 100+ MW, allowing them to take on some of the largest BESS projects in the world");
-                        IMGUI_BULLETTEXTWRAPPED("I was known as one of their best Software Engineers, and could not be given the title of Senior Software Engineer only because I hadn't been there long enough (the lead of software at the time - John Calcagni - said so)");
-                        IMGUI_BULLETTEXTWRAPPED("Because of the above achivements I have been given glowing recommendations on my LinkedIn profile from some of the software senior engineers and managers, everyone respected me and my expertise");
+                        if (open_action != -1)
+                            ImGui::SetNextItemOpen(open_action != 0);
+                        if (ImGui::TreeNode("Software Engineer - FlexGen Power Systems (2020 -> 2023)")) {
+                            defer { ImGui::TreePop(); };
+
+                            IMGUI_BULLETTEXTWRAPPED("Languages: C/C++11/17, golang, python, Bash");
+                            IMGUI_BULLETTEXTWRAPPED("Joined FlexGen fresh out of college, my first job");
+                            IMGUI_BULLETTEXTWRAPPED("FlexGen specializes in BESSs (Battery Energy Storage Systems), a form of distributed systems with lots of networking");
+                            IMGUI_BULLETTEXTWRAPPED("I developed, along with 3 other people, FlexGen's ESS (Energy Storage System) Controller. This is one of their most important pieces of software and their lowest level controller");
+                            IMGUI_BULLETTEXTWRAPPED("Because of the above point, FlexGen became a multi-million dollar success story, all of the software I wrote is still active today earning them millions more");
+                            IMGUI_BULLETTEXTWRAPPED("I have rewritten core piece of code architecture for this company, from scratch, often solo and with the blessing of management");
+                            IMGUI_BULLETTEXTWRAPPED("I have written their entire deployment/installation process originally in Bash. Later this was converted to Ansible by an entire team");
+                            IMGUI_BULLETTEXTWRAPPED("I have made significant performance improvements across their whole system by rewriting the core IPC architecture that underlies everything. An end to end all possible input test went from 1 week down to 1 day or less");
+                            IMGUI_BULLETTEXTWRAPPED("I have also rewritten core Modbus communication software that is used throughout the entire distributed network, bringing the CPU usage down from 112%% to 1-3%% in our largest use cases and increasing networking performance by about 2-3 times");
+                            IMGUI_BULLETTEXTWRAPPED("Because of the above achievements FlexGen was able to properly scale to larger sites beyond 100+ MW, allowing them to take on some of the largest BESS projects in the world");
+                            IMGUI_BULLETTEXTWRAPPED("I was known as one of their best Software Engineers, and could not be given the title of Senior Software Engineer only because I hadn't been there long enough (the lead of software at the time - John Calcagni - said so)");
+                            IMGUI_BULLETTEXTWRAPPED("Because of the above achivements I have been given glowing recommendations on my LinkedIn profile from some of the software senior engineers and managers, everyone respected me and my expertise");
+                        }
                     }
                 }
-                // Projects function:
+                // Projects:
                 if (ImGui::BeginTabItem("Projects", nullptr, ImGuiTabItemFlags_None)) {
                     defer { ImGui::EndTabItem(); };
                     int open_action = -1;
@@ -262,27 +320,32 @@ int main(int, char**) {
                     ImGui::SameLine();
                     if (ImGui::Button("Close all"))
                         open_action = 0;
-                    if (open_action != -1)
-                        ImGui::SetNextItemOpen(open_action != 0);
-                    if (ImGui::TreeNode("Hydroponics Startup - Currently Active")) {
-                        defer { ImGui::TreePop(); };
-                        IMGUI_BULLETTEXTWRAPPED("Working with a previous FlexGen employee, Sam Rappl, on a hydroponics startup");
-                        IMGUI_BULLETTEXTWRAPPED("Preliminary work is being done using Arduino Uno controllers, sensors, and custom circuits on a bread board");
-                        IMGUI_BULLETTEXTWRAPPED("We have already applied for two government grants, each worth $100,000+");
-                    }
-                    if (open_action != -1)
-                        ImGui::SetNextItemOpen(open_action != 0);
-                    if (ImGui::TreeNode("Jai Language Closed Beta - Currently Active")) {
-                        defer { ImGui::TreePop(); };
-                        IMGUI_BULLETTEXTWRAPPED("Currently a member of the closed beta for the Jai programming language");
-                        IMGUI_BULLETTEXTWRAPPED("Beta access is not easily given out, you have to prove you're worthy of being given access");
-                        IMGUI_BULLETTEXTWRAPPED("Only a couple hundred other people are in the beta");
-                        IMGUI_BULLETTEXTWRAPPED("Beta is run by Jonathan Blow, creator of best selling games \"Braid\" and \"The Witness\"");
-                        IMGUI_BULLETTEXTWRAPPED("I have filled out multiple bug reports across multiple beta versions already");
-                        IMGUI_BULLETTEXTWRAPPED("I have contributed to an open source project that the beta members are writing called \"Focus\", an editor written 100%% in Jai that I am using right now to write this resume");
+                    {
+                        ImGui::BeginChild("Scroll");
+                        defer { ImGui::EndChild(); };
+
+                        if (open_action != -1)
+                            ImGui::SetNextItemOpen(open_action != 0);
+                        if (ImGui::TreeNode("Hydroponics Startup - Currently Active")) {
+                            defer { ImGui::TreePop(); };
+                            IMGUI_BULLETTEXTWRAPPED("Working with a previous FlexGen employee, Sam Rappl, on a hydroponics startup");
+                            IMGUI_BULLETTEXTWRAPPED("Preliminary work is being done using Arduino Uno controllers, sensors, and custom circuits on a bread board");
+                            IMGUI_BULLETTEXTWRAPPED("We have already applied for two government grants, each worth $100,000+");
+                        }
+                        if (open_action != -1)
+                            ImGui::SetNextItemOpen(open_action != 0);
+                        if (ImGui::TreeNode("Jai Language Closed Beta - Currently Active")) {
+                            defer { ImGui::TreePop(); };
+                            IMGUI_BULLETTEXTWRAPPED("Currently a member of the closed beta for the Jai programming language");
+                            IMGUI_BULLETTEXTWRAPPED("Beta access is not easily given out, you have to prove you're worthy of being given access");
+                            IMGUI_BULLETTEXTWRAPPED("Only a couple hundred other people are in the beta");
+                            IMGUI_BULLETTEXTWRAPPED("Beta is run by Jonathan Blow, creator of best selling games \"Braid\" and \"The Witness\"");
+                            IMGUI_BULLETTEXTWRAPPED("I have filled out multiple bug reports across multiple beta versions already");
+                            IMGUI_BULLETTEXTWRAPPED("I have contributed to an open source project that the beta members are writing called \"Focus\", an editor written 100%% in Jai that I am using right now to write this resume");
+                        }
                     }
                 }
-                // Education function:
+                // Education:
                 if (ImGui::BeginTabItem("Education", nullptr, ImGuiTabItemFlags_None)) {
                     defer { ImGui::EndTabItem(); };
                     int open_action = -1;
@@ -291,22 +354,27 @@ int main(int, char**) {
                     ImGui::SameLine();
                     if (ImGui::Button("Close all"))
                         open_action = 0;
-                    if (open_action != -1)
-                        ImGui::SetNextItemOpen(open_action != 0);
-                    if (ImGui::TreeNode("University of North Carolina at Charlotte - (2016 -> 2020)")) {
-                        defer { ImGui::TreePop(); };
-                        IMGUI_BULLETTEXTWRAPPED("Early Master of Science in Computer Science - GPA: 3.8/4.0");
-                        IMGUI_BULLETTEXTWRAPPED("Bachelor of Science in Computer Science     - GPA: 3.658/4.0");
-                        IMGUI_BULLETTEXTWRAPPED("I enrolled in UNCC's Early Master's program");
-                        IMGUI_BULLETTEXTWRAPPED("I graduated in 3 years with my Bachelor's and 4 with my Master's");
-                    }
-                    if (open_action != -1)
-                        ImGui::SetNextItemOpen(open_action != 0);
-                    if (ImGui::TreeNode("Lee Early College/Central Carolina Community College - (2012 -> 2016)")) {
-                        defer { ImGui::TreePop(); };
-                        IMGUI_BULLETTEXTWRAPPED("High School Diploma && Associate in Science - GPA: 3.78/4.0");
-                        IMGUI_BULLETTEXTWRAPPED("I was chosen out of Middle School for this High School through an interview process");
-                        IMGUI_BULLETTEXTWRAPPED("Students would dual enroll in both High School and Community College courses, graduating from both at the end of 4 years");
+                    {
+                        ImGui::BeginChild("Scroll");
+                        defer { ImGui::EndChild(); };
+
+                        if (open_action != -1)
+                            ImGui::SetNextItemOpen(open_action != 0);
+                        if (ImGui::TreeNode("University of North Carolina at Charlotte - (2016 -> 2020)")) {
+                            defer { ImGui::TreePop(); };
+                            IMGUI_BULLETTEXTWRAPPED("Early Master of Science in Computer Science - GPA: 3.8/4.0");
+                            IMGUI_BULLETTEXTWRAPPED("Bachelor of Science in Computer Science     - GPA: 3.658/4.0");
+                            IMGUI_BULLETTEXTWRAPPED("I enrolled in UNCC's Early Master's program");
+                            IMGUI_BULLETTEXTWRAPPED("I graduated in 3 years with my Bachelor's and 4 with my Master's");
+                        }
+                        if (open_action != -1)
+                            ImGui::SetNextItemOpen(open_action != 0);
+                        if (ImGui::TreeNode("Lee Early College/Central Carolina Community College - (2012 -> 2016)")) {
+                            defer { ImGui::TreePop(); };
+                            IMGUI_BULLETTEXTWRAPPED("High School Diploma && Associate in Science - GPA: 3.78/4.0");
+                            IMGUI_BULLETTEXTWRAPPED("I was chosen out of Middle School for this High School through an interview process");
+                            IMGUI_BULLETTEXTWRAPPED("Students would dual enroll in both High School and Community College courses, graduating from both at the end of 4 years");
+                        }
                     }
                 }
             }
