@@ -190,7 +190,7 @@ Module['FS_createPath']("/", "fonts", true, true);
     }
 
     }
-    loadPackage({"files": [{"filename": "/fonts/JetBrainsMono-Regular.ttf", "start": 0, "end": 274744}, {"filename": "/fonts/LinLibertine_RBah.ttf", "start": 274744, "end": 1023344}, {"filename": "/fonts/ProggyClean.ttf", "start": 1023344, "end": 1064552}, {"filename": "/fonts/times new roman.ttf", "start": 1064552, "end": 1132924}], "remote_package_size": 1132924});
+    loadPackage({"files": [{"filename": "/fonts/JetBrainsMono-Regular.ttf", "start": 0, "end": 274744}, {"filename": "/fonts/LiberationSans-Regular.ttf", "start": 274744, "end": 408572}, {"filename": "/fonts/LinLibertine_RBah.ttf", "start": 408572, "end": 1157172}, {"filename": "/fonts/ProggyClean.ttf", "start": 1157172, "end": 1198380}, {"filename": "/fonts/times new roman.ttf", "start": 1198380, "end": 1266752}], "remote_package_size": 1266752});
 
   })();
 
@@ -4265,6 +4265,10 @@ function copy_async_js(content_ptr) { navigator.clipboard.writeText(UTF8ToString
   }
   }
 
+  var __emscripten_throw_longjmp = () => {
+      throw Infinity;
+    };
+
   var _abort = () => {
       abort('native code called abort()');
     };
@@ -7581,6 +7585,7 @@ function copy_async_js(content_ptr) { navigator.clipboard.writeText(UTF8ToString
 
 
 
+
   var FS_unlink = (path) => FS.unlink(path);
 
   var FSNode = /** @constructor */ function(parent, name, mode, rdev) {
@@ -7785,6 +7790,8 @@ var wasmImports = {
   __syscall_ioctl: ___syscall_ioctl,
   /** @export */
   __syscall_openat: ___syscall_openat,
+  /** @export */
+  _emscripten_throw_longjmp: __emscripten_throw_longjmp,
   /** @export */
   abort: _abort,
   /** @export */
@@ -7998,7 +8005,17 @@ var wasmImports = {
   /** @export */
   glfwTerminate: _glfwTerminate,
   /** @export */
-  glfwWindowHint: _glfwWindowHint
+  glfwWindowHint: _glfwWindowHint,
+  /** @export */
+  invoke_iii: invoke_iii,
+  /** @export */
+  invoke_iiii: invoke_iiii,
+  /** @export */
+  invoke_iiiii: invoke_iiiii,
+  /** @export */
+  invoke_vi: invoke_vi,
+  /** @export */
+  invoke_viiii: invoke_viiii
 };
 var wasmExports = createWasm();
 var ___wasm_call_ctors = createExportWrapper('__wasm_call_ctors');
@@ -8010,6 +8027,7 @@ var _malloc = createExportWrapper('malloc');
 var _free = createExportWrapper('free');
 var ___errno_location = createExportWrapper('__errno_location');
 var ___funcs_on_exit = createExportWrapper('__funcs_on_exit');
+var _setThrew = createExportWrapper('setThrew');
 var _emscripten_stack_init = () => (_emscripten_stack_init = wasmExports['emscripten_stack_init'])();
 var _emscripten_stack_get_free = () => (_emscripten_stack_get_free = wasmExports['emscripten_stack_get_free'])();
 var _emscripten_stack_get_base = () => (_emscripten_stack_get_base = wasmExports['emscripten_stack_get_base'])();
@@ -8020,8 +8038,63 @@ var stackAlloc = createExportWrapper('stackAlloc');
 var _emscripten_stack_get_current = () => (_emscripten_stack_get_current = wasmExports['emscripten_stack_get_current'])();
 var ___cxa_is_pointer_type = createExportWrapper('__cxa_is_pointer_type');
 var dynCall_jiji = Module['dynCall_jiji'] = createExportWrapper('dynCall_jiji');
-var ___start_em_js = Module['___start_em_js'] = 141488;
-var ___stop_em_js = Module['___stop_em_js'] = 142137;
+var ___start_em_js = Module['___start_em_js'] = 232920;
+var ___stop_em_js = Module['___stop_em_js'] = 233569;
+function invoke_viiii(index,a1,a2,a3,a4) {
+  var sp = stackSave();
+  try {
+    getWasmTableEntry(index)(a1,a2,a3,a4);
+  } catch(e) {
+    stackRestore(sp);
+    if (e !== e+0) throw e;
+    _setThrew(1, 0);
+  }
+}
+
+function invoke_iii(index,a1,a2) {
+  var sp = stackSave();
+  try {
+    return getWasmTableEntry(index)(a1,a2);
+  } catch(e) {
+    stackRestore(sp);
+    if (e !== e+0) throw e;
+    _setThrew(1, 0);
+  }
+}
+
+function invoke_iiiii(index,a1,a2,a3,a4) {
+  var sp = stackSave();
+  try {
+    return getWasmTableEntry(index)(a1,a2,a3,a4);
+  } catch(e) {
+    stackRestore(sp);
+    if (e !== e+0) throw e;
+    _setThrew(1, 0);
+  }
+}
+
+function invoke_iiii(index,a1,a2,a3) {
+  var sp = stackSave();
+  try {
+    return getWasmTableEntry(index)(a1,a2,a3);
+  } catch(e) {
+    stackRestore(sp);
+    if (e !== e+0) throw e;
+    _setThrew(1, 0);
+  }
+}
+
+function invoke_vi(index,a1) {
+  var sp = stackSave();
+  try {
+    getWasmTableEntry(index)(a1);
+  } catch(e) {
+    stackRestore(sp);
+    if (e !== e+0) throw e;
+    _setThrew(1, 0);
+  }
+}
+
 
 // include: postamble.js
 // === Auto-generated postamble setup entry stuff ===
