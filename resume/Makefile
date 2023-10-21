@@ -11,13 +11,14 @@ CXX = em++
 WEB_DIR = web
 EXE = $(WEB_DIR)/resume.html
 IMGUI_DIR = ../imgui
+FREETYPE_DIR = ../freetype
 SOURCES = resume.cpp
-SOURCES += $(IMGUI_DIR)/imgui.cpp $(IMGUI_DIR)/imgui_demo.cpp $(IMGUI_DIR)/imgui_draw.cpp $(IMGUI_DIR)/imgui_tables.cpp $(IMGUI_DIR)/imgui_widgets.cpp
+SOURCES += $(IMGUI_DIR)/imgui.cpp $(IMGUI_DIR)/imgui_demo.cpp $(IMGUI_DIR)/imgui_draw.cpp $(IMGUI_DIR)/imgui_tables.cpp $(IMGUI_DIR)/imgui_widgets.cpp $(IMGUI_DIR)/misc/freetype/imgui_freetype.cpp
 SOURCES += $(IMGUI_DIR)/backends/imgui_impl_glfw.cpp $(IMGUI_DIR)/backends/imgui_impl_opengl3.cpp
 OBJS = $(addsuffix .o, $(basename $(notdir $(SOURCES))))
 UNAME_S := $(shell uname -s)
-CPPFLAGS =
-LDFLAGS =
+CPPFLAGS = -DIMGUI_USER_CONFIG="\"my_imgui_config.h\""
+LDFLAGS = -s USE_FREETYPE=1
 EMS =
 
 ##---------------------------------------------------------------------
@@ -38,18 +39,19 @@ LDFLAGS += -s USE_GLFW=3 -s WASM=1 -s ALLOW_MEMORY_GROWTH=1 -s NO_EXIT_RUNTIME=0
 # (Default value is 0. Set to 1 to enable file-system and include the misc/fonts/ folder as part of the build.)
 USE_FILE_SYSTEM ?= 0
 ifeq ($(USE_FILE_SYSTEM), 0)
-LDFLAGS += -s NO_FILESYSTEM=1
-CPPFLAGS += -DIMGUI_DISABLE_FILE_FUNCTIONS
+# LDFLAGS += -s NO_FILESYSTEM=1
+# CPPFLAGS += -DIMGUI_DISABLE_FILE_FUNCTIONS
+LDFLAGS += --no-heap-copy --preload-file fonts@/fonts
 endif
 ifeq ($(USE_FILE_SYSTEM), 1)
-LDFLAGS += --no-heap-copy --preload-file ../imgui/misc/fonts@/fonts
+LDFLAGS += --no-heap-copy --preload-file fonts@/fonts
 endif
 
 ##---------------------------------------------------------------------
 ## FINAL BUILD FLAGS
 ##---------------------------------------------------------------------
 
-CPPFLAGS += -I$(IMGUI_DIR) -I$(IMGUI_DIR)/backends
+CPPFLAGS += -I. -I$(IMGUI_DIR) -I$(IMGUI_DIR)/backends -I$(IMGUI_DIR)/misc/freetype -I$(FREETYPE_DIR)/include
 #CPPFLAGS += -g
 CPPFLAGS += -Wall -Wformat -Os $(EMS)
 LDFLAGS += --shell-file resume_shell.html
@@ -63,6 +65,9 @@ LDFLAGS += $(EMS)
 	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -c -o $@ $<
 
 %.o:$(IMGUI_DIR)/%.cpp
+	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -c -o $@ $<
+
+%.o:$(IMGUI_DIR)/misc/freetype/%.cpp
 	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -c -o $@ $<
 
 %.o:$(IMGUI_DIR)/backends/%.cpp

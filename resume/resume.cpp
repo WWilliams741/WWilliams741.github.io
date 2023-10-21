@@ -4,6 +4,7 @@
 #include "imgui.h"
 #include "imgui_impl_glfw.h"
 #include "imgui_impl_opengl3.h"
+#include "imgui_freetype.h"
 #include <stdio.h>
 #define GL_SILENCE_DEPRECATION
 #if defined(IMGUI_IMPL_OPENGL_ES2)
@@ -112,6 +113,7 @@ int main(int, char**) {
     // config.OversampleV = 1;
     // config.GlyphExtraSpacing.x = 1.0f;
     io.Fonts->AddFontFromFileTTF("fonts/JetBrainsMono-Regular.ttf", 26.0f);
+    io.Fonts->AddFontFromFileTTF("fonts/LiberationSans-Regular.ttf", 26.0f);
     io.Fonts->AddFontFromFileTTF("fonts/LinLibertine_RBah.ttf", 26.0f);
     io.Fonts->AddFontFromFileTTF("fonts/times new roman.ttf", 26.0f);
     io.Fonts->AddFontFromFileTTF("fonts/ProggyClean.ttf", 26.0f);

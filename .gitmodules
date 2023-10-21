@@ -7,3 +7,6 @@
 [submodule "emscripten-browser-clipboard"]
 	path = emscripten-browser-clipboard
 	url = https://github.com/Armchair-Software/emscripten-browser-clipboard
+[submodule "freetype"]
+	path = freetype
+	url = https://github.com/freetype/freetype
