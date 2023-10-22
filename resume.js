@@ -1171,6 +1171,10 @@ function dbg(text) {
 function paste_js(callback,callback_data) { document.addEventListener('paste', (event) => { Module["ccall"]('paste_return', 'number', ['string', 'number', 'number'], [event.clipboardData.getData('text/plain'), callback, callback_data]); }); }
 function copy_js(callback,callback_data) { document.addEventListener('copy', (event) => { const content_ptr = Module["ccall"]('copy_return', 'number', ['number', 'number'], [callback, callback_data]); event.clipboardData.setData('text/plain', UTF8ToString(content_ptr)); event.preventDefault(); }); }
 function copy_async_js(content_ptr) { navigator.clipboard.writeText(UTF8ToString(content_ptr)); }
+function get_canvas_width() { return Module.canvas.width; }
+function get_canvas_height() { return Module.canvas.height; }
+function resize_canvas_to_screen_dimensions() { var w = screen.width; var h = screen.height; var DPR = window.devicePixelRatio; w = Math.round(DPR * w); h = Math.round(DPR * h); Module.canvas.width = w; Module.canvas.height = h; }
+function open_link_through_clipboard() { navigator.clipboard.readText().then( (clipText) => (window.open(clipText, "_blank")) ); }
 
 
 // end include: preamble.js
@@ -7813,6 +7817,10 @@ var wasmImports = {
   /** @export */
   fd_write: _fd_write,
   /** @export */
+  get_canvas_height: get_canvas_height,
+  /** @export */
+  get_canvas_width: get_canvas_width,
+  /** @export */
   glActiveTexture: _glActiveTexture,
   /** @export */
   glAttachShader: _glAttachShader,
@@ -8015,7 +8023,11 @@ var wasmImports = {
   /** @export */
   invoke_vi: invoke_vi,
   /** @export */
-  invoke_viiii: invoke_viiii
+  invoke_viiii: invoke_viiii,
+  /** @export */
+  open_link_through_clipboard: open_link_through_clipboard,
+  /** @export */
+  resize_canvas_to_screen_dimensions: resize_canvas_to_screen_dimensions
 };
 var wasmExports = createWasm();
 var ___wasm_call_ctors = createExportWrapper('__wasm_call_ctors');
@@ -8038,8 +8050,8 @@ var stackAlloc = createExportWrapper('stackAlloc');
 var _emscripten_stack_get_current = () => (_emscripten_stack_get_current = wasmExports['emscripten_stack_get_current'])();
 var ___cxa_is_pointer_type = createExportWrapper('__cxa_is_pointer_type');
 var dynCall_jiji = Module['dynCall_jiji'] = createExportWrapper('dynCall_jiji');
-var ___start_em_js = Module['___start_em_js'] = 232920;
-var ___stop_em_js = Module['___stop_em_js'] = 233569;
+var ___start_em_js = Module['___start_em_js'] = 245000;
+var ___stop_em_js = Module['___stop_em_js'] = 246015;
 function invoke_viiii(index,a1,a2,a3,a4) {
   var sp = stackSave();
   try {

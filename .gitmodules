@@ -10,3 +10,6 @@
 [submodule "freetype"]
 	path = freetype
 	url = https://github.com/freetype/freetype
+[submodule "Utilities"]
+	path = Utilities
+	url = https://github.com/WWilliams741/Utilities

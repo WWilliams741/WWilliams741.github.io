@@ -13,7 +13,76 @@
 #include <GLFW/glfw3.h> // Will drag system OpenGL headers
 
 #include "../emscripten-browser-clipboard/emscripten_browser_clipboard.h"
-#include "defer.hpp" // NOTE(WALKER): Custom defer macro used to make code sleaker and more readable when using imgui (especially begin()/end() pairs)
+#include "../Utilities/defer.hpp" // NOTE(WALKER): Custom defer macro used to make code sleaker and more readable when using imgui (especially begin()/end() pairs)
+
+// NOTE(WALKER): This is the text from defer.hpp as a const char[] so people can view it:
+static const char defer_macro_code[] = R"DELIMITER(
+#ifndef DEFER_CPP
+#define DEFER_CPP
+
+// A useful macro to get arbitrary code to execute at the end of a scope using RAII and lambdas.
+// This provides defer syntax similiar to golang. This is useful for interfacing
+// with C APIs that need a "deinit" or "cleanup" function to be called at the end of scope.
+// This creates code that is cleaner because you don't need to create lots of RAII wrappers.
+
+// NOTE: The defer macro is assumed to be "noexcept" by default.
+//       #define DEFER_WITH_EXCEPTIONS above "defer.hpp" to allow exceptions to be thrown
+//       inside defer statements (although I would highly advise against it)
+#ifdef DEFER_WITH_EXCEPTIONS
+#define DEFER_NOEXCEPT noexcept(false)
+#else
+#define DEFER_NOEXCEPT noexcept(true)
+#endif
+
+#if __cplusplus >= 201703L
+
+// Defer macro (>= C++17):
+template<typename Code>
+struct Defer {
+    Code code;
+// constexpr support (>= C++20):
+#if __cplusplus >= 202002L
+    constexpr Defer(Code block) DEFER_NOEXCEPT : code(block) {}
+    constexpr ~Defer() DEFER_NOEXCEPT { code(); }
+#else
+    Defer(Code block) DEFER_NOEXCEPT : code(block) {}
+    ~Defer() DEFER_NOEXCEPT { code(); }
+#endif
+};
+#define GEN_DEFER_NAME_HACK(name, counter) name ## counter
+#define GEN_DEFER_NAME(name, counter) GEN_DEFER_NAME_HACK(name, counter)
+#define defer Defer GEN_DEFER_NAME(_defer_, __COUNTER__) = [&]() DEFER_NOEXCEPT
+
+#else
+
+// Defer macro (>= C++11)
+template<typename Code>
+struct Defer {
+    Code code;
+    Defer(Code block) DEFER_NOEXCEPT : code(block) {}
+    ~Defer() DEFER_NOEXCEPT { code(); }
+};
+struct Defer_Generator { template<typename Code> Defer<Code> operator +(Code code) DEFER_NOEXCEPT { return Defer<Code>{code}; } };
+#define GEN_DEFER_NAME_HACK(name, counter) name ## counter
+#define GEN_DEFER_NAME(name, counter) GEN_DEFER_NAME_HACK(name, counter)
+#define defer auto GEN_DEFER_NAME(_defer_, __COUNTER__) = Defer_Generator{} + [&]() DEFER_NOEXCEPT
+
+#endif
+
+// Example usage:
+// auto some_func(auto& input) {
+//     defer { ++input; /* Put code block here to execute at end of scope, you can refer to "input" in this code block like normal */ };
+//     // put other code here you want to execute before defer like normal
+//     return input;
+// }
+// Example main (should print 1 before 2):
+// int main() {
+//     defer { printf("hello, defer world! 2\n"); };
+//     defer { printf("hello, defer world! 1\n"); };
+// }
+
+#endif
+)DELIMITER";
 
 // NOTE(WALKER): This is a nice hack to get wrapped bullet text, not low level or deep, but it works well enough
 #define IMGUI_BULLETTEXTWRAPPED(fmt_str, ...) ImGui::BulletText(""); ImGui::SameLine(); ImGui::TextWrapped(fmt_str, ##__VA_ARGS__)
@@ -21,6 +90,30 @@
 void set_clipboard(void* data, const char* text) {
     emscripten_browser_clipboard::copy(text);
 }
+
+// NOTE(WALKER): For getting the canvas width/height in order to make a window
+EM_JS(int, get_canvas_width, (), {
+    return Module.canvas.width;
+});
+EM_JS(int, get_canvas_height, (), {
+    return Module.canvas.height;
+});
+// NOTE(WALKER): Called at the beginning to set canvas dimensions to the dimensions of the user's monitor
+// credit: https://stackoverflow.com/questions/16277383/javascript-screen-height-and-screen-width-returns-incorrect-values
+EM_JS(void, resize_canvas_to_screen_dimensions, (), {
+    var w = screen.width; var h = screen.height;
+    var DPR = window.devicePixelRatio;
+    w = Math.round(DPR * w);
+    h = Math.round(DPR * h);
+    Module.canvas.width  = w;
+    Module.canvas.height = h;
+});
+// NOTE(WALKER): This is so we can click on links we want to embed into the UI (it uses the clipboard that we copy into)
+EM_JS(void, open_link_through_clipboard, (), {
+    navigator.clipboard.readText().then(
+        (clipText) => (window.open(clipText, "_blank"))
+    );
+});
 
 // [Win32] Our example includes a copy of glfw3.lib pre-compiled with VS2010 to maximize ease of testing and compatibility with old VS compilers.
 // To link with VS2010-era libraries, VS2015+ requires linking with legacy_stdio_definitions.lib, which we do using this pragma.
@@ -37,9 +130,6 @@ void set_clipboard(void* data, const char* text) {
 static void glfw_error_callback(int error, const char* description) {
     fprintf(stderr, "GLFW Error %d: %s\n", error, description);
 }
-
-// NOTE(WALKER): This is the way ImGui does its font stuff so I put this here, not quite why this needs a namespace wrap though
-namespace ImGui { IMGUI_API void ShowFontAtlas(ImFontAtlas* atlas); }
 
 // Main code
 int main(int, char**) {
@@ -70,10 +160,13 @@ int main(int, char**) {
     //glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);            // 3.0+ only
 #endif
 
+    // Automatically set Canvas Width/Height:
+    resize_canvas_to_screen_dimensions();
+    const auto canvas_width  = get_canvas_width();
+    const auto canvas_height = get_canvas_height();
+
     // Create window with graphics context
-    // GLFWwindow* window = glfwCreateWindow(3840, 2160, "Walker Williams Resume", nullptr, nullptr);
-    GLFWwindow* window = glfwCreateWindow(1920, 1080, "Walker Williams Resume", nullptr, nullptr);
-    // GLFWwindow* window = glfwCreateWindow(1280, 720,  "Walker Williams Resume", nullptr, nullptr);
+    GLFWwindow* window = glfwCreateWindow(canvas_width, canvas_height, "Walker Williams Resume", nullptr, nullptr);
     if (window == nullptr)
         return 1;
     glfwMakeContextCurrent(window);
@@ -84,7 +177,7 @@ int main(int, char**) {
     ImGui::CreateContext();
     ImGuiIO& io = ImGui::GetIO(); (void)io;
     io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;     // Enable Keyboard Controls
-    // io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;      // Enable Gamepad Controls
+    io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;      // Enable Gamepad Controls
     io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;         // Enable Docking
     // io.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;       // Enable Multi-Viewport / Platform Windows
     //io.ConfigViewportsNoAutoMerge = true;
@@ -95,9 +188,17 @@ int main(int, char**) {
 
     // Setup Dear ImGui style
     ImGui::StyleColorsDark();
+    ImGuiStyle& style = ImGui::GetStyle();
+    // Rounding:
+    style.WindowRounding = 0.0f;
+    style.ChildRounding = 6.0f;
+    style.FrameRounding = 6.0f;
+    style.PopupRounding = 6.0f;
+    style.ScrollbarRounding = 6.0f;
+    style.GrabRounding = 6.0f;
+    style.TabRounding = 12.0f;
 
     // When viewports are enabled we tweak WindowRounding/WindowBg so platform windows can look identical to regular ones.
-    ImGuiStyle& style = ImGui::GetStyle();
     if (io.ConfigFlags & ImGuiConfigFlags_ViewportsEnable) {
         style.WindowRounding = 0.0f;
         style.Colors[ImGuiCol_WindowBg].w = 1.0f;
@@ -107,16 +208,13 @@ int main(int, char**) {
     ImGui_ImplGlfw_InitForOpenGL(window, true);
     ImGui_ImplOpenGL3_Init(glsl_version);
 
-    // io.Fonts->AddFontDefault();
-    // ImFontConfig config;
-    // config.OversampleH = 2;
-    // config.OversampleV = 1;
-    // config.GlyphExtraSpacing.x = 1.0f;
-    io.Fonts->AddFontFromFileTTF("fonts/JetBrainsMono-Regular.ttf", 26.0f);
-    io.Fonts->AddFontFromFileTTF("fonts/LiberationSans-Regular.ttf", 26.0f);
-    io.Fonts->AddFontFromFileTTF("fonts/LinLibertine_RBah.ttf", 26.0f);
-    io.Fonts->AddFontFromFileTTF("fonts/times new roman.ttf", 26.0f);
-    io.Fonts->AddFontFromFileTTF("fonts/ProggyClean.ttf", 26.0f);
+    // NOTE(WALKER): Automatically adjust font size based on the user's window dimensions to get clarity
+    const auto font_ratio = (canvas_width / 960.0f);
+    io.Fonts->AddFontFromFileTTF("fonts/JetBrainsMono-Regular.ttf", 13.0f * font_ratio);
+    io.Fonts->AddFontFromFileTTF("fonts/LiberationSans-Regular.ttf", 13.0f * font_ratio);
+    io.Fonts->AddFontFromFileTTF("fonts/LinLibertine_RBah.ttf", 13.0f * font_ratio);
+    io.Fonts->AddFontFromFileTTF("fonts/times new roman.ttf", 13.0f * font_ratio);
+    io.Fonts->AddFontFromFileTTF("fonts/ProggyClean.ttf", 13.0f * font_ratio);
 
     // Our state
     ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
@@ -139,38 +237,26 @@ int main(int, char**) {
         ImGui::NewFrame();
 
         {
+            const ImGuiViewport* viewport = ImGui::GetMainViewport();
+            ImGui::SetNextWindowPos(viewport->WorkPos);
+            ImGui::SetNextWindowSize(viewport->WorkSize);
+
             ImGuiWindowFlags window_flags = 0;
             // window_flags |= ImGuiWindowFlags_NoTitleBar;
             window_flags |= ImGuiWindowFlags_NoMove;
             window_flags |= ImGuiWindowFlags_NoResize;
             window_flags |= ImGuiWindowFlags_NoCollapse;
             window_flags |= ImGuiWindowFlags_MenuBar;
-            const ImGuiViewport* main_viewport = ImGui::GetMainViewport();
-            ImGui::SetNextWindowPos(ImVec2(main_viewport->WorkPos.x + 0, main_viewport->WorkPos.y + 0), ImGuiCond_FirstUseEver);
-            // ImGui::SetNextWindowSize(ImVec2(3840, 2160), ImGuiCond_FirstUseEver);
-            ImGui::SetNextWindowSize(ImVec2(1920, 1080), ImGuiCond_FirstUseEver);
-            // ImGui::SetNextWindowSize(ImVec2(1280, 720), ImGuiCond_FirstUseEver);
-
-            ImGui::Begin("Walker Williams Resume", nullptr, window_flags);
+            ImGui::Begin("Walker Williams Resume (Written in C++)", nullptr, window_flags);
             defer { ImGui::End(); };
 
+            // Menu bar:
             if (ImGui::BeginMenuBar()) {
                 defer { ImGui::EndMenuBar(); };
-                // Theme picker:
-                if (ImGui::BeginMenu("Theme")) {
+                // Style editor (from the demo window):
+                if (ImGui::BeginMenu("Style")) {
                     defer { ImGui::EndMenu(); };
-                    static int theme_idx = 0;
-                    if (ImGui::Combo(" ", &theme_idx, "Dark\0Light\0")) {
-                        switch (theme_idx) {
-                        case 0: ImGui::StyleColorsDark(); break;
-                        case 1: ImGui::StyleColorsLight(); break;
-                        }
-                    }
-                }
-                // Font picker:
-                if (ImGui::BeginMenu("Font")) {
-                    defer { ImGui::EndMenu(); };
-                    ImGui::ShowFontAtlas(io.Fonts);
+                    ImGui::ShowStyleEditor();
                 }
             }
 
@@ -179,7 +265,19 @@ int main(int, char**) {
                 defer { ImGui::EndTabBar(); };
                 if (ImGui::BeginTabItem("About", nullptr, ImGuiTabItemFlags_None)) {
                     defer { ImGui::EndTabItem(); };
-                    ImGui::TextWrapped("Hello, my name is Walker Williams. I am a very passionate programmer and this is my resume, written in C++ and put on the web for you, recruiter, potential employer, or casual viewer, to look through. Thanks for stopping by, enjoy.");
+
+                    {
+                        ImGui::BeginChild("Scroll");
+                        defer { ImGui::EndChild(); };
+
+                        ImGui::TextWrapped("Hello, my name is Walker Williams. I am a very passionate programmer and this is my resume, written in C++ and put on the web for you, recruiter, potential employer, or casual viewer, to look through. Thanks for stopping by, enjoy.");
+                        ImGui::NewLine();
+                        ImGui::TextWrapped("Click this button to view this resume's codebase on my github:");
+                        if (ImGui::Button("Resume Code")) {
+                            emscripten_browser_clipboard::copy("https://github.com/WWilliams741/WWilliams741.github.io");
+                            open_link_through_clipboard();
+                        }
+                    }
                 }
                 // Skills:
                 if (ImGui::BeginTabItem("Skills", nullptr, ImGuiTabItemFlags_None)) {
@@ -224,23 +322,10 @@ int main(int, char**) {
                             ImGui::SetNextItemOpen(open_action != 0);
                         if (ImGui::TreeNode("Jai (intermediate)")) {
                             defer { ImGui::TreePop(); };
-                            IMGUI_BULLETTEXTWRAPPED("Currently a member of the closed beta for Jai programming language");
+                            IMGUI_BULLETTEXTWRAPPED("Currently a member of the closed beta for the Jai programming language");
                             IMGUI_BULLETTEXTWRAPPED("Beta access is not easily given out, you have to prove you're worthy of being given access");
                             IMGUI_BULLETTEXTWRAPPED("Only a couple hundred other people are in the beta");
                             IMGUI_BULLETTEXTWRAPPED("Beta is run by Jonathan Blow, creator of best selling games \"Braid\" and \"The Witness\"");
-
-                            // TODO(WALKER): Figure out how to get a Jai link into the user's clipboard, almost there
-                            // if (ImGui::Selectable(names[n], selected == n))
-                            //     selected = n;
-                            // if (ImGui::BeginPopupContextItem()) {
-                            //     ImGui::Text("This a popup!");
-                            //     if (ImGui::Button("Copy Link")) {
-                            //         emscripten_browser_clipboard::copy("Hello copy world!");
-                            //         ImGui::CloseCurrentPopup();
-                            //     }
-                            //     ImGui::EndPopup();
-                            // }
-                            // ImGui::SetItemTooltip("Right-click to copy Jai's community wiki link");
                         }
                         // Non-language stuff:
                         if (open_action != -1)
@@ -264,9 +349,9 @@ int main(int, char**) {
                                 defer { ImGui::TreePop(); };
                                 IMGUI_BULLETTEXTWRAPPED("I am NOT afraid of memory and low level programming");
                                 IMGUI_BULLETTEXTWRAPPED("I am PRO creating custom allocators");
-                                IMGUI_BULLETTEXTWRAPPED("I am PRO understanding how your program acesses memory and how that relates to CPU caches and RAM (L1, L2, L3, main memory cache misses and their costs");
+                                IMGUI_BULLETTEXTWRAPPED("I am PRO understanding how your program acesses memory and how that relates to CPU caches and RAM (L1, L2, L3, main memory cache misses and their costs)");
                                 IMGUI_BULLETTEXTWRAPPED("I am PRO SUA (Shutup Use Array), 99%% of the time. The last 1%% is usually a flat Hash Table");
-                                IMGUI_BULLETTEXTWRAPPED("I am PRO writing software from scratch, from an empty main() and doing many iterations");
+                                IMGUI_BULLETTEXTWRAPPED("I am PRO writing software from scratch, from an empty main(), and doing many iterations");
                                 IMGUI_BULLETTEXTWRAPPED("These above princples I have used in professional environments to great success");
                             }
                         }
@@ -364,7 +449,7 @@ int main(int, char**) {
                             ImGui::SetNextItemOpen(open_action != 0);
                         if (ImGui::TreeNode("University of North Carolina at Charlotte - (2016 -> 2020)")) {
                             defer { ImGui::TreePop(); };
-                            IMGUI_BULLETTEXTWRAPPED("Early Master of Science in Computer Science - GPA: 3.8/4.0");
+                            IMGUI_BULLETTEXTWRAPPED("Early Master of Science in Computer Science - GPA: 3.8  /4.0");
                             IMGUI_BULLETTEXTWRAPPED("Bachelor of Science in Computer Science     - GPA: 3.658/4.0");
                             IMGUI_BULLETTEXTWRAPPED("I enrolled in UNCC's Early Master's program");
                             IMGUI_BULLETTEXTWRAPPED("I graduated in 3 years with my Bachelor's and 4 with my Master's");
@@ -373,10 +458,37 @@ int main(int, char**) {
                             ImGui::SetNextItemOpen(open_action != 0);
                         if (ImGui::TreeNode("Lee Early College/Central Carolina Community College - (2012 -> 2016)")) {
                             defer { ImGui::TreePop(); };
-                            IMGUI_BULLETTEXTWRAPPED("High School Diploma && Associate in Science - GPA: 3.78/4.0");
+                            IMGUI_BULLETTEXTWRAPPED("High School Diploma && Associate in Science - GPA: 3.78 /4.0");
                             IMGUI_BULLETTEXTWRAPPED("I was chosen out of Middle School for this High School through an interview process");
                             IMGUI_BULLETTEXTWRAPPED("Students would dual enroll in both High School and Community College courses, graduating from both at the end of 4 years");
                         }
+                    }
+                }
+                // defer macro gift:
+                if (ImGui::BeginTabItem("A Gift For You", nullptr, ImGuiTabItemFlags_None)) {
+                    defer { ImGui::EndTabItem(); };
+
+                    ImGui::TextWrapped("This is a gift to you, as a gesture of good will, that you, or the company that you represent, can drop into your codebase easily. It is a defer macro for C++11 and beyond. It was used to write this resume's code.");
+                    ImGui::NewLine();
+
+                    if (ImGui::Button("Defer Code")) {
+                        emscripten_browser_clipboard::copy("https://github.com/WWilliams741/Utilities/blob/main/defer.hpp");
+                        open_link_through_clipboard();
+                    }
+                    ImGui::SetItemTooltip("Click this button for the defer.hpp file on my github");
+                    ImGui::SameLine();
+
+                    if (ImGui::Button("Live Demo")) {
+                        emscripten_browser_clipboard::copy("https://compiler-explorer.com/#z:OYLghAFBqd5QCxAYwPYBMCmBRdBLAF1QCcAaPECAMzwBtMA7AQwFtMQByARg9KtQYEAysib0QXACx8BBAKoBnTAAUAHpwAMvAFYTStJg1DIApACYAQuYukl9ZATwDKjdAGFUtAK4sGe1wAyeAyYAHI%2BAEaYxBIAnKQADqgKhE4MHt6%2BekkpjgJBIeEsUTFc8XaYDmlCBEzEBBk%2Bfly2mPZ5DDV1BAVhkdFxtrX1jVktCsM9wX3FA2UAlLaoXsTI7BzmAMzByN5YANQmm27IE/ioR9gmGgCC13dm21QMWFT7ACLYAGLYAEoA%2Bm5lMp7ltXtMPt8/oDgaDbgB6eH7G77LxKKheWj7FhMZDEVD7Ij7YCYAj7OoRQjEOoAT32aAORMwqkqXgImHJZIICA5rn2qDeTH2CjQCQ5aOCwH2vxuAElZeSXvsDMV0EwFAA6e6I/YAFQQeAU%2BwS%2BIAbngsEbXtFhTTBExVMK8Cw6Hg6oSCcBPIZgBq9QajYbUejMft%2BMR9sF2cQqLjJdqkQB3QgIfZuZHKWVG7lMMkhTDocmHMxmLDBQjmMz8iOV3aYQxeBKVsNeBhVAQe/ZRelieiF3OEnn7PkC4WizBahFI/VBvH19lGhkcnNk2f0Qw2qKiNEcmnLfboARgDh5zAFztz3Mc2ioAhG0cy%2BX7RPUhJi4iauE3HWhADyuuwEB/Q5a0IxxPECSDdUFB8c8iW7SsGFQZk1gSAhmwiOlXiYTECEnb8kX2IjiLBTAaBCSEfgBAB1WVdQACX%2BbAAA03GwZRdVlX9QiEckIlQU0OUrUCNQQN9myJXtUETYdVFQjpswJbtuXxRMGATYjNOCFIDlA4VanZNhBCNCAxG5ZZgFTBVE2WWhCwNSzaDpJh0HNJRyWAJhtNXAh5lBR48CoV5KOhWiGKY1j2M47ihH8zZwQoz4qP%2BP8WLYjj9iQlDMDQ6gxCUPzbi2NolDihKOSS6FUsijKsrknKCAgAhiC8TBCoeTZXECr8tkC/Z/n%2BZAEm8BRhrRQ5NiuTZ3n2MwNC4AB2DRNgCL8dXeMibXA/F9ggS4jhmtxrGsRb5hAe5DOGq8jjcAgaTFZg2DTDBMH224JhahwPk2msFqsW5NI8A4lyOf6CPpAQJmZE1hUbJJ6l2/bprTY7LDms64r6gahpGsajSRma5rmjQzFWgHiLQBgodUGGNqoaIICBjkIhvZAAGt5hCgFqvS3V9iApcIBZ1B2c5kw/vF957k0ynqZhgA/OmGc5yrud/NKosOP6IawCA/M2CwtalorHhK17yaIpXiEZl6u1ZjmuZS9War5gWXqF%2B2xYlhbjZRYjFZ%2BvXHZ5zXxcNwX9cNyW4q6qhQR90GyrIiEAHFsFCf5VZSm4AFlsH%2BeibjcABpCBHswUgIdbaNOfL4tNi2KvBGiJPyI5NOM6z0Jc%2BwMvWArpua/2DvM6hbme4LovS/Lyu0Gr6J2tItuDx%2B776YjEeu57iB/lA/5K4GtxfzkUIAIBf4xeRkwAFYrDMAA2G/3iDrvnd5nrTdoUqiqnNettxHae1JoHRRpYE6XB2qXQMOyG6d0Hr92elgN6NwPpeC%2BlbLWYNAa2xBgbaWxErY2wOMLUWwc36azdrrEhDsw7RwtvsAO68X5jydhrDKYcdaYD1qDI28cpZ4Pes1NBZIrb/BTowaIuYSCYMJJgFgV0YHHDgYwBBTNLh/2IDdNRk1%2BTvikTWSwRCORLhViwkO7DtbEFJCsBgGitEvX2n9EGCcDZG14QIjq5Vh7p1HslbuedJ4lz7mwWeyxm7EFrggrYjc57hNbqnHxW887BIHrEoem8zET0LkEmeg8F7xIonpHCRIMl%2BO3rvH6%2B9%2BqAmPqfaEF8JozVEeIkI1IiCaO9jNawhxb7mEftfZ%2Bpi/HkI4h/TqLxuo/3BtgVQrBhrigUEwEk51f7FIJAoVAbB/gYjbKZNkFwH6RgYAkNkXswY6k0npDhqMLDBBOehVx8IABU%2BxlBsk4XbEWbN9g8isZ2ZkrJ2ScmHEqUcIpUBikrnuLwPZbFWPXp2Ssdy2TNmCIOWcttqHKjwGzDkSFiA4ixE8pE0cPEXOIjqe5/JuQ2iXD86Iu59yJkMFyAkALkBsmZmREgIFV60BxXikghKNKaSsQQGxRz7mJ1/nQ6Zsz5H0GxF5WxEAFAIFsoWE0UZ9hcC7Nyv5ZgMa/21TiYIQdaG/0uavDhWrBBUD2iWHktAbyVz0jZYgdkwBgFmjfNw6kSyR3cecwixErna1tQQe1lYnUupXgi91nrvVcF9f6w1PDSXBt4VM4qEy47ZtuCa5V5qJb0LDYbCNUbHVtFjW6kgiafXXz9ZWQNGb8FETLcaYgUZK1mBjagV1q8E3oC9TqlNzb00uLBrKjgixaCcGvrwPwHAtCkFQJwI6YDLDCmWKsISjweCkAIJoGdiweQuQGHrUgbMQDXw0PoTgkhF3HtXZwXgCgQB3qPcumdpA4CwBgIgFAmyEh0GiOQSgaB5GgZiMALgmwzCkCwOaNYAA1PAmBEy/gepwA9NBaDRnfULZ9lJmDEBpDh3gJHaS/giNoSoX6D2QaMgQX8DAnLPqwBELwwA3C9nfdwXgWAcRGHEN%2BxDeArFVEEvxld7LOXPqjG0Z9/KIjUjI0zZ9zVnQUcWFQAwwAFBoYw1hxgFGZCCBEGIdgUhzPyCUGoZ9ugWgGCMCgG5%2Bg8ARHfZARYEKFKcAALRnAOqYTdFg5r7AC7%2BKsAXqK9ki9RZkzUhSxbFGqQQeBkAJcpoJD8aQEtqpctJSLzxUABeymhNICheACWiF2y08BFgVHbH4CArhRjNFIIEaYRQSjZGSKkAQHX%2Bu5DSL0XrcxWjtGqJMYb4w2j0Zm90cb/RShDG6HN9b9QVuzFKE1ndawJCzvnU%2BsTa6OD7FUAADnvgF%2B%2BkhiTICy3BjUVYIC4EINIrYEDeBfq0PMRY1775mA1Nfe9HBH2kBYDeu9S6V3nbfR%2Bw9x7Fh/sA8sAg9zwMQEgyB%2BgxBQj904Nd2793HvPc2K93gBZPv1b0PwCzohxA2YZ3ZlQ6gxNOdIC%2BJgCQdPg4XaQOHNXOC/jZFS0cJO7sPeAE9nVlO3seCg/j%2BuP3kffoB6QM9WAYiXrnRD3g0Pb1C%2BfQj2wSO/snqvTD8HmxTvw9fer/7x2OBmHtyLjgv2UeLFyykZwkggA%3D%3D");
+                        open_link_through_clipboard();
+                    }
+                    ImGui::SetItemTooltip("Click this button for an interactive demo of defer.hpp");
+                    ImGui::Separator();
+                    {
+                        ImGui::BeginChild("Scroll");
+                        defer { ImGui::EndChild(); };
+
+                        ImGui::TextWrapped(defer_macro_code);
                     }
                 }
             }
