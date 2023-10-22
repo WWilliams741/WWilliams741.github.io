@@ -1,4 +1,4 @@
-# WWilliams741.github.io
+# Welcome
 Resume for employers or recruiters written in C++ using Dear ImGui and Emscripten.
 
 [My Resume](https://wwilliams741.github.io/resume.html)
