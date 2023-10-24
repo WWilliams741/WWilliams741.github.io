@@ -1173,7 +1173,7 @@ function copy_js(callback,callback_data) { document.addEventListener('copy', (ev
 function copy_async_js(content_ptr) { navigator.clipboard.writeText(UTF8ToString(content_ptr)); }
 function get_canvas_width() { return Module.canvas.width; }
 function get_canvas_height() { return Module.canvas.height; }
-function resize_canvas_to_screen_dimensions() { var w = screen.width; var h = screen.height; var DPR = window.devicePixelRatio; w = Math.round(DPR * w); h = Math.round(DPR * h); Module.canvas.width = w; Module.canvas.height = h; }
+function resize_canvas_to_screen_dimensions() { var w = screen.width; var h = screen.height; var DPR = window.devicePixelRatio; w = Math.round(DPR * w); h = Math.round(DPR * h); if (w < h) { var temp = w; w = h; h = temp; } Module.canvas.width = w; Module.canvas.height = h; }
 function open_link_through_clipboard() { navigator.clipboard.readText().then( (clipText) => (window.open(clipText, "_blank")) ); }
 
 
@@ -8050,8 +8050,8 @@ var stackAlloc = createExportWrapper('stackAlloc');
 var _emscripten_stack_get_current = () => (_emscripten_stack_get_current = wasmExports['emscripten_stack_get_current'])();
 var ___cxa_is_pointer_type = createExportWrapper('__cxa_is_pointer_type');
 var dynCall_jiji = Module['dynCall_jiji'] = createExportWrapper('dynCall_jiji');
-var ___start_em_js = Module['___start_em_js'] = 247128;
-var ___stop_em_js = Module['___stop_em_js'] = 248143;
+var ___start_em_js = Module['___start_em_js'] = 247144;
+var ___stop_em_js = Module['___stop_em_js'] = 248205;
 function invoke_viiii(index,a1,a2,a3,a4) {
   var sp = stackSave();
   try {

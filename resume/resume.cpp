@@ -105,6 +105,11 @@ EM_JS(void, resize_canvas_to_screen_dimensions, (), {
     var DPR = window.devicePixelRatio;
     w = Math.round(DPR * w);
     h = Math.round(DPR * h);
+    if (w < h) {
+        var temp = w;
+        w = h;
+        h = temp;
+    }
     Module.canvas.width  = w;
     Module.canvas.height = h;
 });
@@ -162,8 +167,16 @@ int main(int, char**) {
 
     // Automatically set Canvas Width/Height:
     resize_canvas_to_screen_dimensions();
-    const auto canvas_width  = get_canvas_width();
-    const auto canvas_height = get_canvas_height();
+    auto canvas_width  = get_canvas_width();
+    auto canvas_height = get_canvas_height();
+
+    // NOTE(WALKER): This is for mobile users so they can at least view the app when they turn their phone sideways
+    //               They still wno't be able to interact with it very well because touch screens are wonky
+    if (canvas_width < canvas_height) {
+        auto temp = canvas_width;
+        canvas_width = canvas_height;
+        canvas_height = temp;
+    }
 
     // Create window with graphics context
     GLFWwindow* window = glfwCreateWindow(canvas_width, canvas_height, "Walker Williams Resume", nullptr, nullptr);
@@ -346,8 +359,8 @@ int main(int, char**) {
                         if (ImGui::TreeNode("Agile Development")) {
                             defer { ImGui::TreePop(); };
                             IMGUI_BULLETTEXTWRAPPED("Jira boards and filling out tickets for sprints");
-                            IMGUI_BULLETTEXTWRAPPED("Markdown documentation on Confluence/Altissian or Github Wikis");
-                            IMGUI_BULLETTEXTWRAPPED("CI (Continuous Integration) using Github PRs (Pull Requests) and Jenkins/AWS");
+                            IMGUI_BULLETTEXTWRAPPED("Markdown documentation on Confluence or Github Wikis");
+                            IMGUI_BULLETTEXTWRAPPED("CI (Continuous Integration) using Github PRs (Pull Requests) and Jenkins/AWS (Amazon Web Services)");
                             IMGUI_BULLETTEXTWRAPPED("SCRUM meetings twice a week to check in on progress and potential blockers");
                             IMGUI_BULLETTEXTWRAPPED("Sprints that last 1 month+ with pre-planning");
                             IMGUI_BULLETTEXTWRAPPED("Consistent communication on Slack with team members on a daily basis");
