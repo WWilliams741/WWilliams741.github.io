@@ -288,6 +288,8 @@ int main(int, char**) {
                         ImGui::NewLine();
                         ImGui::TextWrapped("Fun fact: This is the first UI I've ever written as a programmer. I learned on the fly just to write this resume.");
                         ImGui::NewLine();
+                        ImGui::TextWrapped("PSSSSSSSSSSSSSSSSSSSSST: There is a style button at the top left corner of this resume. Try clicking it and mess with some of the values.");
+                        ImGui::NewLine();
                         ImGui::TextWrapped("Click this button to view this resume's codebase on my github (also copies the link to your clipboard):");
                         if (ImGui::Button("Resume Code")) {
                             emscripten_browser_clipboard::copy("https://github.com/WWilliams741/WWilliams741.github.io");
@@ -311,17 +313,21 @@ int main(int, char**) {
                         // Languages:
                         if (open_action != -1)
                             ImGui::SetNextItemOpen(open_action != 0);
-                        if (ImGui::TreeNode("C++ (master)")) {
+                        if (ImGui::TreeNode("C/C++ (master)")) {
                             defer { ImGui::TreePop(); };
                             IMGUI_BULLETTEXTWRAPPED("C++ is my main language besides Jai");
                             IMGUI_BULLETTEXTWRAPPED("This resume is written in C++ thanks to the power of Dear ImGui and Emscripten");
                             IMGUI_BULLETTEXTWRAPPED("I have developed, from scratch solo, critical projects/architecture in C++, with little to no guidance before");
-                            IMGUI_BULLETTEXTWRAPPED("The above projects were all multi-threaded environments in distributed systems");
+                            {
+                                ImGui::Indent();
+                                defer { ImGui::Unindent(); };
+                                IMGUI_BULLETTEXTWRAPPED("The above projects were all multi-threaded environments in distributed systems");
+                            }
                             IMGUI_BULLETTEXTWRAPPED("I was well known at FlexGen Power Systems as one of their best C++ programmers, not even a linter was used without my approval");
-                            IMGUI_BULLETTEXTWRAPPED("I know C++11 through C++20, but C++20 and up is my prefered standard");
+                            IMGUI_BULLETTEXTWRAPPED("I know C++11 through C++20, but C++20 and up is my preferred standard");
                             IMGUI_BULLETTEXTWRAPPED("Familiar with the STL, Generic Programming, creating custom allocators/memory management, etc.");
-                            IMGUI_BULLETTEXTWRAPPED("Familiar with debugging using Valgrind, GDB, step debuggers using breakpoints in an IDE, etc.");
-                            IMGUI_BULLETTEXTWRAPPED("Familiar with testing in googletest or, my preferred testing framework, Doctest");
+                            IMGUI_BULLETTEXTWRAPPED("Familiar with debugging using Valgrind, GDB, step debugging using breakpoints in an IDE, etc.");
+                            IMGUI_BULLETTEXTWRAPPED("Familiar with TDD (Test Driven Development) using Googletest or, my preferred favorite framework, Doctest");
                         }
                         if (open_action != -1)
                             ImGui::SetNextItemOpen(open_action != 0);
@@ -348,7 +354,13 @@ int main(int, char**) {
                             ImGui::SetNextItemOpen(open_action != 0);
                         if (ImGui::TreeNode("Jai (intermediate)")) {
                             defer { ImGui::TreePop(); };
-                            IMGUI_BULLETTEXTWRAPPED("Currently a member of the closed beta for the Jai programming language");
+                            IMGUI_BULLETTEXTWRAPPED("Currently a proud member of the closed beta for the ");
+                            ImGui::SameLine();
+                            if (ImGui::Button("Jai programming language")) {
+                                emscripten_browser_clipboard::copy("https://github.com/Jai-Community/Jai-Community-Library/wiki");
+                                open_link_through_clipboard();
+                            }
+                            ImGui::SetItemTooltip("Click this button to get information about the Jai programming language (also copies the link to your clipboard)");
                             IMGUI_BULLETTEXTWRAPPED("Beta access is not easily given out, you have to prove you're worthy of being given access");
                             IMGUI_BULLETTEXTWRAPPED("Only a couple hundred other people are in the beta");
                             IMGUI_BULLETTEXTWRAPPED("Beta is run by Jonathan Blow, creator of best selling games \"Braid\" and \"The Witness\"");
@@ -390,7 +402,7 @@ int main(int, char**) {
                         if (ImGui::TreeNode("Software Environment/Tools")) {
                             defer { ImGui::TreePop(); };
                             IMGUI_BULLETTEXTWRAPPED("Docker for simulatating distributed systems and networks, using Dockerfiles and docker-compose for simplicity");
-                            IMGUI_BULLETTEXTWRAPPED("Linux environments are my goto (centOS - Red Hat Linux for example), but Windows is alright");
+                            IMGUI_BULLETTEXTWRAPPED("Linux environments are my goto (CentOS - Red Hat Linux for example), but Windows is alright");
                         }
                     }
                 }
@@ -409,23 +421,24 @@ int main(int, char**) {
 
                         if (open_action != -1)
                             ImGui::SetNextItemOpen(open_action != 0);
-                        if (ImGui::TreeNode("Software Engineer - FlexGen Power Systems (2020 -> 2023)")) {
+                        if (ImGui::TreeNode("Software Engineer - FlexGen Power Systems (September 2020 -> August 2023)")) {
                             defer { ImGui::TreePop(); };
 
-                            IMGUI_BULLETTEXTWRAPPED("Languages: C/C++11/17, golang, python, bash");
+                            IMGUI_BULLETTEXTWRAPPED("Languages: C/C++, golang, python, bash");
                             IMGUI_BULLETTEXTWRAPPED("Joined FlexGen fresh out of college, my first job, doing 100%% remote work for the first couple months over Slack");
-                            IMGUI_BULLETTEXTWRAPPED("FlexGen specializes in BESSs (Battery Energy Storage Systems), a form of distributed system with multiple pieces of hardware in a \"Command and Control\" typology");
-                            IMGUI_BULLETTEXTWRAPPED("I developed, along with 3 other people, FlexGen's ESS (Energy Storage System) Controller, their lowest level controller and one of their most important pieces of software");
-                            IMGUI_BULLETTEXTWRAPPED("Because of the above point, FlexGen became a multi-million dollar success story, and all of the software I wrote is still active today earning them millions more");
-                            IMGUI_BULLETTEXTWRAPPED("I have written their entire deployment/installation process originally in bash, later this was converted to Ansible by an entire team");
-                            IMGUI_BULLETTEXTWRAPPED("I have rewritten core pieces of code architecture for FlexGen, from scratch, often solo and with the blessing of management");
-                            IMGUI_BULLETTEXTWRAPPED("I have mentored a new software engineer to rewrite a core piece of code architecture from scratch in golang, taking the lines of config from the thousands down to the hundreds");
-                            IMGUI_BULLETTEXTWRAPPED("I have made significant performance improvements across their whole system by rewriting the core IPC architecture that underlies everything");
-                            IMGUI_BULLETTEXTWRAPPED("Becuase of the above point, an end to end all possible input test went from 1 week down to 1 day or less");
-                            IMGUI_BULLETTEXTWRAPPED("I have also rewritten core Modbus communication software that is used throughout the entire distributed network, bringing the CPU usage down from 112%% to 1-3%% in our largest use cases and increasing networking performance by about 2-3 times");
-                            IMGUI_BULLETTEXTWRAPPED("Because of the above achievements FlexGen was able to properly scale to larger sites beyond 100+ MW allowing them to take on some of the largest BESS projects in the world");
+                            IMGUI_BULLETTEXTWRAPPED("FlexGen specializes in BESSs (Battery Energy Storage Systems), a form of distributed system with multiple pieces of hardware in a \"Command and Control\" typology, with thousands of data points in a live system");
+                            IMGUI_BULLETTEXTWRAPPED("I developed, along with 3 other people in C++, FlexGen's ESS (Energy Storage System) Controller, their lowest level controller and one of their most important pieces of software");
+                            IMGUI_BULLETTEXTWRAPPED("I have written, solo in bash, their entire deployment/installation process, later this was converted to Ansible by another team entirely");
+                            IMGUI_BULLETTEXTWRAPPED("I have rewritten, solo in C++, core communication software that is used throughout the entire distributed network, bringing the CPU usage down from 112%% to 1-3%% in our largest use cases and increasing networking performance by about 2-3 times");
+                            IMGUI_BULLETTEXTWRAPPED("I have rewritten, solo in C, C++, and golang, the core Unix IPC (Inter Process Communication) architecture that underlied everything, taking a large test that used to take 3 minutes down to 3 seconds, and causing an end-to-end all possible inputs test to go from 1 week down to 1 day or less without breaking anyone's code");
+                            {
+                                ImGui::Indent();
+                                defer { ImGui::Unindent(); };
+                                IMGUI_BULLETTEXTWRAPPED("Because of the above achievements FlexGen was able to properly scale to larger sites beyond 100+ MW allowing them to take on some of the largest BESS projects in the world and become a multi-million dollar success story, going from 50 employees to hundreds of employees");
+                            }
+                            IMGUI_BULLETTEXTWRAPPED("I have mentored a new software engineer to rewrite a core piece of integration architecture from scratch in golang, taking the lines of config from the thousands down to the hundreds and adding programmatic syntax");
                             IMGUI_BULLETTEXTWRAPPED("I was known as one of their best Software Engineers, and could not be given the title of Senior Software Engineer only because I hadn't been there long enough (the lead of software at the time - John Calcagni - said so)");
-                            IMGUI_BULLETTEXTWRAPPED("Because of the above achivements I have been given glowing recommendations on my LinkedIn profile from some of the Senior Software Engineers and managers, everyone respected me and my expertise");
+                            IMGUI_BULLETTEXTWRAPPED("Because of the above achivements I have been given glowing recommendations on my LinkedIn profile from some of the Senior Software Engineers and Managers, everyone respected my expertise so much they wouldn't even allow a C++ linter without my approval");
                         }
                     }
                 }
@@ -444,6 +457,13 @@ int main(int, char**) {
 
                         if (open_action != -1)
                             ImGui::SetNextItemOpen(open_action != 0);
+                        if (ImGui::TreeNode("This Resume - Lifetime Active")) {
+                            defer { ImGui::TreePop(); };
+                            IMGUI_BULLETTEXTWRAPPED("If you're reading this you're viewing this project right now");
+                            IMGUI_BULLETTEXTWRAPPED("NOTE: Each time you view this resume things might change, so check back every now and then");
+                        }
+                        if (open_action != -1)
+                            ImGui::SetNextItemOpen(open_action != 0);
                         if (ImGui::TreeNode("Hydroponics Startup - Currently Active")) {
                             defer { ImGui::TreePop(); };
                             IMGUI_BULLETTEXTWRAPPED("Working with a previous FlexGen employee, Sam Rappl, on a hydroponics startup");
@@ -454,12 +474,32 @@ int main(int, char**) {
                             ImGui::SetNextItemOpen(open_action != 0);
                         if (ImGui::TreeNode("Jai Language Closed Beta - Currently Active")) {
                             defer { ImGui::TreePop(); };
-                            IMGUI_BULLETTEXTWRAPPED("Currently a member of the closed beta for the Jai programming language");
+                            IMGUI_BULLETTEXTWRAPPED("Currently a proud member of the closed beta for the ");
+                            ImGui::SameLine();
+                            if (ImGui::Button("Jai programming language")) {
+                                emscripten_browser_clipboard::copy("https://github.com/Jai-Community/Jai-Community-Library/wiki");
+                                open_link_through_clipboard();
+                            }
+                            ImGui::SetItemTooltip("Click this button to get information about the Jai programming language (also copies the link to your clipboard)");
                             IMGUI_BULLETTEXTWRAPPED("Beta access is not easily given out, you have to prove you're worthy of being given access");
                             IMGUI_BULLETTEXTWRAPPED("Only a couple hundred other people are in the beta");
                             IMGUI_BULLETTEXTWRAPPED("Beta is run by Jonathan Blow, creator of best selling games \"Braid\" and \"The Witness\"");
                             IMGUI_BULLETTEXTWRAPPED("I have filled out multiple bug reports across multiple beta versions already");
                             IMGUI_BULLETTEXTWRAPPED("I have contributed to an open source project that the beta members are writing called \"Focus\", an editor written 100%% in Jai that I am using right now to write this resume");
+                        }
+                        if (open_action != -1)
+                            ImGui::SetNextItemOpen(open_action != 0);
+                        if (ImGui::TreeNode("Arduino Uno Simon Say's Game - Completed")) {
+                            defer { ImGui::TreePop(); };
+                            IMGUI_BULLETTEXTWRAPPED("A simple game with four buttons on a custom built circuit and an Arduino Uno");
+                            IMGUI_BULLETTEXTWRAPPED("A random order of lights would be displayed, you would then have to match the light order with the buttons, then another light is added next round");
+                            IMGUI_BULLETTEXTWRAPPED("You won if you went 15 rounds following \"Simon's\" orders, and lost if you couldn't memorize them");
+                            IMGUI_BULLETTEXTWRAPPED("");
+                            ImGui::SameLine();
+                            if (ImGui::Button("Code and Demo")) {
+                                emscripten_browser_clipboard::copy("https://github.com/WWilliams741/Simon-Says-Game");
+                                open_link_through_clipboard();
+                            }
                         }
                     }
                 }
