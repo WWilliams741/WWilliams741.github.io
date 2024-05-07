@@ -12,7 +12,8 @@
 #endif
 #include <GLFW/glfw3.h> // Will drag system OpenGL headers
 
-#include "../emscripten-browser-clipboard/emscripten_browser_clipboard.h"
+#include <emscripten.h>
+
 #include "../Utilities/defer.hpp" // NOTE(WALKER): Custom defer macro used to make code sleaker and more readable when using imgui (especially begin()/end() pairs)
 
 // NOTE(WALKER): This is the text from defer.hpp as a const char[] so people can view it:
@@ -87,10 +88,6 @@ struct Defer_Generator { template<typename Code> Defer<Code> operator +(Code cod
 // NOTE(WALKER): This is a nice hack to get wrapped bullet text, not low level or deep, but it works well enough
 #define IMGUI_BULLETTEXTWRAPPED(fmt_str, ...) ImGui::BulletText(""); ImGui::SameLine(); ImGui::TextWrapped(fmt_str, ##__VA_ARGS__)
 
-void set_clipboard(void* data, const char* text) {
-    emscripten_browser_clipboard::copy(text);
-}
-
 // NOTE(WALKER): For getting the canvas width/height in order to make a window
 EM_JS(int, get_canvas_width, (), {
     return Module.canvas.width;
@@ -113,11 +110,10 @@ EM_JS(void, resize_canvas_to_screen_dimensions, (), {
     Module.canvas.width  = w;
     Module.canvas.height = h;
 });
-// NOTE(WALKER): This is so we can click on links we want to embed into the UI (it uses the clipboard that we copy into)
-EM_JS(void, open_link_through_clipboard, (), {
-    navigator.clipboard.readText().then(
-        (clipText) => (window.open(clipText, "_blank"))
-    );
+// NOTE(WALKER): This is so we can click on links we want to embed into the UI
+EM_JS(void, open_link, (const char* str), {
+    let link = UTF8ToString(str);
+    window.open(link, "_blank");
 });
 
 // [Win32] Our example includes a copy of glfw3.lib pre-compiled with VS2010 to maximize ease of testing and compatibility with old VS compilers.
@@ -197,7 +193,7 @@ int main(int, char**) {
     //io.ConfigViewportsNoTaskBarIcon = true;
 
     // Set clipboard copy function:
-    io.SetClipboardTextFn = set_clipboard;
+    // io.SetClipboardTextFn = set_clipboard;
 
     // Setup Dear ImGui style
     ImGui::StyleColorsDark();
@@ -292,8 +288,8 @@ int main(int, char**) {
                         ImGui::NewLine();
                         ImGui::TextWrapped("Click this button to view this resume's codebase on my github (also copies the link to your clipboard):");
                         if (ImGui::Button("Resume Code")) {
-                            emscripten_browser_clipboard::copy("https://github.com/WWilliams741/WWilliams741.github.io");
-                            open_link_through_clipboard();
+                            // emscripten_browser_clipboard::copy("https://github.com/WWilliams741/WWilliams741.github.io");
+                            open_link("https://github.com/WWilliams741/WWilliams741.github.io");
                         }
                     }
                 }
@@ -357,8 +353,8 @@ int main(int, char**) {
                             IMGUI_BULLETTEXTWRAPPED("Currently a proud member of the closed beta for the ");
                             ImGui::SameLine();
                             if (ImGui::Button("Jai programming language")) {
-                                emscripten_browser_clipboard::copy("https://github.com/Jai-Community/Jai-Community-Library/wiki");
-                                open_link_through_clipboard();
+                                // emscripten_browser_clipboard::copy("https://github.com/Jai-Community/Jai-Community-Library/wiki");
+                                open_link("https://github.com/Jai-Community/Jai-Community-Library/wiki");
                             }
                             ImGui::SetItemTooltip("Click this button to get information about the Jai programming language (also copies the link to your clipboard)");
                             IMGUI_BULLETTEXTWRAPPED("Beta access is not easily given out, you have to prove you're worthy of being given access");
@@ -372,7 +368,7 @@ int main(int, char**) {
                             defer { ImGui::TreePop(); };
                             IMGUI_BULLETTEXTWRAPPED("Jira boards and filling out tickets for sprints");
                             IMGUI_BULLETTEXTWRAPPED("Markdown documentation on Confluence or Github Wikis");
-                            IMGUI_BULLETTEXTWRAPPED("CI (Continuous Integration) using Github PRs (Pull Requests) and Jenkins/AWS (Amazon Web Services)");
+                            IMGUI_BULLETTEXTWRAPPED("CI (Continuous Integration) using Github PRs (Pull Requests), Code Reviews with lead sign off, and Jenkins/AWS (Amazon Web Services)");
                             IMGUI_BULLETTEXTWRAPPED("SCRUM meetings twice a week to check in on progress and potential blockers");
                             IMGUI_BULLETTEXTWRAPPED("Sprints that last 1 month+ with pre-planning");
                             IMGUI_BULLETTEXTWRAPPED("Consistent communication on Slack with team members on a daily basis");
@@ -477,8 +473,8 @@ int main(int, char**) {
                             IMGUI_BULLETTEXTWRAPPED("Currently a proud member of the closed beta for the ");
                             ImGui::SameLine();
                             if (ImGui::Button("Jai programming language")) {
-                                emscripten_browser_clipboard::copy("https://github.com/Jai-Community/Jai-Community-Library/wiki");
-                                open_link_through_clipboard();
+                                // emscripten_browser_clipboard::copy("https://github.com/Jai-Community/Jai-Community-Library/wiki");
+                                open_link("https://github.com/Jai-Community/Jai-Community-Library/wiki");
                             }
                             ImGui::SetItemTooltip("Click this button to get information about the Jai programming language (also copies the link to your clipboard)");
                             IMGUI_BULLETTEXTWRAPPED("Beta access is not easily given out, you have to prove you're worthy of being given access");
@@ -497,8 +493,8 @@ int main(int, char**) {
                             IMGUI_BULLETTEXTWRAPPED("");
                             ImGui::SameLine();
                             if (ImGui::Button("Code and Demo")) {
-                                emscripten_browser_clipboard::copy("https://github.com/WWilliams741/Simon-Says-Game");
-                                open_link_through_clipboard();
+                                // emscripten_browser_clipboard::copy("https://github.com/WWilliams741/Simon-Says-Game");
+                                open_link("https://github.com/WWilliams741/Simon-Says-Game");
                             }
                         }
                     }
@@ -543,15 +539,15 @@ int main(int, char**) {
                     ImGui::NewLine();
 
                     if (ImGui::Button("Defer Code")) {
-                        emscripten_browser_clipboard::copy("https://github.com/WWilliams741/Utilities/blob/main/defer.hpp");
-                        open_link_through_clipboard();
+                        // emscripten_browser_clipboard::copy("https://github.com/WWilliams741/Utilities/blob/main/defer.hpp");
+                        open_link("https://github.com/WWilliams741/Utilities/blob/main/defer.hpp");
                     }
                     ImGui::SetItemTooltip("Click this button for the defer.hpp file on my github (also copies the link to your clipboard)");
                     ImGui::SameLine();
 
                     if (ImGui::Button("Live Demo")) {
-                        emscripten_browser_clipboard::copy("https://compiler-explorer.com/#z:OYLghAFBqd5QCxAYwPYBMCmBRdBLAF1QCcAaPECAMzwBtMA7AQwFtMQByARg9KtQYEAysib0QXACx8BBAKoBnTAAUAHpwAMvAFYTStJg1DIApACYAQuYukl9ZATwDKjdAGFUtAK4sGe1wAyeAyYAHI%2BAEaYxBIAnKQADqgKhE4MHt6%2BekkpjgJBIeEsUTFc8XaYDmlCBEzEBBk%2Bfly2mPZ5DDV1BAVhkdFxtrX1jVktCsM9wX3FA2UAlLaoXsTI7BzmAMzByN5YANQmm27IE/ioR9gmGgCC13dm21QMWFT7ACLYAGLYAEoA%2Bm5lMp7ltXtMPt8/oDgaDbgB6eH7G77LxKKheWj7FhMZDEVD7Ij7YCYAj7OoRQjEOoAT32aAORMwqkqXgImHJZIICA5rn2qDeTH2CjQCQ5aOCwH2vxuAElZeSXvsDMV0EwFAA6e6I/YAFQQeAU%2BwS%2BIAbngsEbXtFhTTBExVMK8Cw6Hg6oSCcBPIZgBq9QajYbUejMft%2BMR9sF2cQqLjJdqkQB3QgIfZuZHKWVG7lMMkhTDocmHMxmLDBQjmMz8iOV3aYQxeBKVsNeBhVAQe/ZRelieiF3OEnn7PkC4WizBahFI/VBvH19lGhkcnNk2f0Qw2qKiNEcmnLfboARgDh5zAFztz3Mc2ioAhG0cy%2BX7RPUhJi4iauE3HWhADyuuwEB/Q5a0IxxPECSDdUFB8c8iW7SsGFQZk1gSAhmwiOlXiYTECEnb8kX2IjiLBTAaBCSEfgBAB1WVdQACX%2BbAAA03GwZRdVlX9QiEckIlQU0OUrUCNQQN9myJXtUETYdVFQjpswJbtuXxRMGATYjNOCFIDlA4VanZNhBCNCAxG5ZZgFTBVE2WWhCwNSzaDpJh0HNJRyWAJhtNXAh5lBR48CoV5KOhWiGKY1j2M47ihH8zZwQoz4qP%2BP8WLYjj9iQlDMDQ6gxCUPzbi2NolDihKOSS6FUsijKsrknKCAgAhiC8TBCoeTZXECr8tkC/Z/n%2BZAEm8BRhrRQ5NiuTZ3n2MwNC4AB2DRNgCL8dXeMibXA/F9ggS4jhmtxrGsRb5hAe5DOGq8jjcAgaTFZg2DTDBMH224JhahwPk2msFqsW5NI8A4lyOf6CPpAQJmZE1hUbJJ6l2/bprTY7LDms64r6gahpGsajSRma5rmjQzFWgHiLQBgodUGGNqoaIICBjkIhvZAAGt5hCgFqvS3V9iApcIBZ1B2c5kw/vF957k0ynqZhgA/OmGc5yrud/NKosOP6IawCA/M2CwtalorHhK17yaIpXiEZl6u1ZjmuZS9War5gWXqF%2B2xYlhbjZRYjFZ%2BvXHZ5zXxcNwX9cNyW4q6qhQR90GyrIiEAHFsFCf5VZSm4AFlsH%2BeibjcABpCBHswUgIdbaNOfL4tNi2KvBGiJPyI5NOM6z0Jc%2BwMvWArpua/2DvM6hbme4LovS/Lyu0Gr6J2tItuDx%2B776YjEeu57iB/lA/5K4GtxfzkUIAIBf4xeRkwAFYrDMAA2G/3iDrvnd5nrTdoUqiqnNettxHae1JoHRRpYE6XB2qXQMOyG6d0Hr92elgN6NwPpeC%2BlbLWYNAa2xBgbaWxErY2wOMLUWwc36azdrrEhDsw7RwtvsAO68X5jydhrDKYcdaYD1qDI28cpZ4Pes1NBZIrb/BTowaIuYSCYMJJgFgV0YHHDgYwBBTNLh/2IDdNRk1%2BTvikTWSwRCORLhViwkO7DtbEFJCsBgGitEvX2n9EGCcDZG14QIjq5Vh7p1HslbuedJ4lz7mwWeyxm7EFrggrYjc57hNbqnHxW887BIHrEoem8zET0LkEmeg8F7xIonpHCRIMl%2BO3rvH6%2B9%2BqAmPqfaEF8JozVEeIkI1IiCaO9jNawhxb7mEftfZ%2Bpi/HkI4h/TqLxuo/3BtgVQrBhrigUEwEk51f7FIJAoVAbB/gYjbKZNkFwH6RgYAkNkXswY6k0npDhqMLDBBOehVx8IABU%2BxlBsk4XbEWbN9g8isZ2ZkrJ2ScmHEqUcIpUBikrnuLwPZbFWPXp2Ssdy2TNmCIOWcttqHKjwGzDkSFiA4ixE8pE0cPEXOIjqe5/JuQ2iXD86Iu59yJkMFyAkALkBsmZmREgIFV60BxXikghKNKaSsQQGxRz7mJ1/nQ6Zsz5H0GxF5WxEAFAIFsoWE0UZ9hcC7Nyv5ZgMa/21TiYIQdaG/0uavDhWrBBUD2iWHktAbyVz0jZYgdkwBgFmjfNw6kSyR3cecwixErna1tQQe1lYnUupXgi91nrvVcF9f6w1PDSXBt4VM4qEy47ZtuCa5V5qJb0LDYbCNUbHVtFjW6kgiafXXz9ZWQNGb8FETLcaYgUZK1mBjagV1q8E3oC9TqlNzb00uLBrKjgixaCcGvrwPwHAtCkFQJwI6YDLDCmWKsISjweCkAIJoGdiweQuQGHrUgbMQDXw0PoTgkhF3HtXZwXgCgQB3qPcumdpA4CwBgIgFAmyEh0GiOQSgaB5GgZiMALgmwzCkCwOaNYAA1PAmBEy/gepwA9NBaDRnfULZ9lJmDEBpDh3gJHaS/giNoSoX6D2QaMgQX8DAnLPqwBELwwA3C9nfdwXgWAcRGHEN%2BxDeArFVEEvxld7LOXPqjG0Z9/KIjUjI0zZ9zVnQUcWFQAwwAFBoYw1hxgFGZCCBEGIdgUhzPyCUGoZ9ugWgGCMCgG5%2Bg8ARHfZARYEKFKcAALRnAOqYTdFg5r7AC7%2BKsAXqK9ki9RZkzUhSxbFGqQQeBkAJcpoJD8aQEtqpctJSLzxUABeymhNICheACWiF2y08BFgVHbH4CArhRjNFIIEaYRQSjZGSKkAQHX%2Bu5DSL0XrcxWjtGqJMYb4w2j0Zm90cb/RShDG6HN9b9QVuzFKE1ndawJCzvnU%2BsTa6OD7FUAADnvgF%2B%2BkhiTICy3BjUVYIC4EINIrYEDeBfq0PMRY1775mA1Nfe9HBH2kBYDeu9S6V3nbfR%2Bw9x7Fh/sA8sAg9zwMQEgyB%2BgxBQj904Nd2793HvPc2K93gBZPv1b0PwCzohxA2YZ3ZlQ6gxNOdIC%2BJgCQdPg4XaQOHNXOC/jZFS0cJO7sPeAE9nVlO3seCg/j%2BuP3kffoB6QM9WAYiXrnRD3g0Pb1C%2BfQj2wSO/snqvTD8HmxTvw9fer/7x2OBmHtyLjgv2UeLFyykZwkggA%3D%3D");
-                        open_link_through_clipboard();
+                        // emscripten_browser_clipboard::copy("https://compiler-explorer.com/#z:OYLghAFBqd5QCxAYwPYBMCmBRdBLAF1QCcAaPECAMzwBtMA7AQwFtMQByARg9KtQYEAysib0QXACx8BBAKoBnTAAUAHpwAMvAFYTStJg1DIApACYAQuYukl9ZATwDKjdAGFUtAK4sGe1wAyeAyYAHI%2BAEaYxBIAnKQADqgKhE4MHt6%2BekkpjgJBIeEsUTFc8XaYDmlCBEzEBBk%2Bfly2mPZ5DDV1BAVhkdFxtrX1jVktCsM9wX3FA2UAlLaoXsTI7BzmAMzByN5YANQmm27IE/ioR9gmGgCC13dm21QMWFT7ACLYAGLYAEoA%2Bm5lMp7ltXtMPt8/oDgaDbgB6eH7G77LxKKheWj7FhMZDEVD7Ij7YCYAj7OoRQjEOoAT32aAORMwqkqXgImHJZIICA5rn2qDeTH2CjQCQ5aOCwH2vxuAElZeSXvsDMV0EwFAA6e6I/YAFQQeAU%2BwS%2BIAbngsEbXtFhTTBExVMK8Cw6Hg6oSCcBPIZgBq9QajYbUejMft%2BMR9sF2cQqLjJdqkQB3QgIfZuZHKWVG7lMMkhTDocmHMxmLDBQjmMz8iOV3aYQxeBKVsNeBhVAQe/ZRelieiF3OEnn7PkC4WizBahFI/VBvH19lGhkcnNk2f0Qw2qKiNEcmnLfboARgDh5zAFztz3Mc2ioAhG0cy%2BX7RPUhJi4iauE3HWhADyuuwEB/Q5a0IxxPECSDdUFB8c8iW7SsGFQZk1gSAhmwiOlXiYTECEnb8kX2IjiLBTAaBCSEfgBAB1WVdQACX%2BbAAA03GwZRdVlX9QiEckIlQU0OUrUCNQQN9myJXtUETYdVFQjpswJbtuXxRMGATYjNOCFIDlA4VanZNhBCNCAxG5ZZgFTBVE2WWhCwNSzaDpJh0HNJRyWAJhtNXAh5lBR48CoV5KOhWiGKY1j2M47ihH8zZwQoz4qP%2BP8WLYjj9iQlDMDQ6gxCUPzbi2NolDihKOSS6FUsijKsrknKCAgAhiC8TBCoeTZXECr8tkC/Z/n%2BZAEm8BRhrRQ5NiuTZ3n2MwNC4AB2DRNgCL8dXeMibXA/F9ggS4jhmtxrGsRb5hAe5DOGq8jjcAgaTFZg2DTDBMH224JhahwPk2msFqsW5NI8A4lyOf6CPpAQJmZE1hUbJJ6l2/bprTY7LDms64r6gahpGsajSRma5rmjQzFWgHiLQBgodUGGNqoaIICBjkIhvZAAGt5hCgFqvS3V9iApcIBZ1B2c5kw/vF957k0ynqZhgA/OmGc5yrud/NKosOP6IawCA/M2CwtalorHhK17yaIpXiEZl6u1ZjmuZS9War5gWXqF%2B2xYlhbjZRYjFZ%2BvXHZ5zXxcNwX9cNyW4q6qhQR90GyrIiEAHFsFCf5VZSm4AFlsH%2BeibjcABpCBHswUgIdbaNOfL4tNi2KvBGiJPyI5NOM6z0Jc%2BwMvWArpua/2DvM6hbme4LovS/Lyu0Gr6J2tItuDx%2B776YjEeu57iB/lA/5K4GtxfzkUIAIBf4xeRkwAFYrDMAA2G/3iDrvnd5nrTdoUqiqnNettxHae1JoHRRpYE6XB2qXQMOyG6d0Hr92elgN6NwPpeC%2BlbLWYNAa2xBgbaWxErY2wOMLUWwc36azdrrEhDsw7RwtvsAO68X5jydhrDKYcdaYD1qDI28cpZ4Pes1NBZIrb/BTowaIuYSCYMJJgFgV0YHHDgYwBBTNLh/2IDdNRk1%2BTvikTWSwRCORLhViwkO7DtbEFJCsBgGitEvX2n9EGCcDZG14QIjq5Vh7p1HslbuedJ4lz7mwWeyxm7EFrggrYjc57hNbqnHxW887BIHrEoem8zET0LkEmeg8F7xIonpHCRIMl%2BO3rvH6%2B9%2BqAmPqfaEF8JozVEeIkI1IiCaO9jNawhxb7mEftfZ%2Bpi/HkI4h/TqLxuo/3BtgVQrBhrigUEwEk51f7FIJAoVAbB/gYjbKZNkFwH6RgYAkNkXswY6k0npDhqMLDBBOehVx8IABU%2BxlBsk4XbEWbN9g8isZ2ZkrJ2ScmHEqUcIpUBikrnuLwPZbFWPXp2Ssdy2TNmCIOWcttqHKjwGzDkSFiA4ixE8pE0cPEXOIjqe5/JuQ2iXD86Iu59yJkMFyAkALkBsmZmREgIFV60BxXikghKNKaSsQQGxRz7mJ1/nQ6Zsz5H0GxF5WxEAFAIFsoWE0UZ9hcC7Nyv5ZgMa/21TiYIQdaG/0uavDhWrBBUD2iWHktAbyVz0jZYgdkwBgFmjfNw6kSyR3cecwixErna1tQQe1lYnUupXgi91nrvVcF9f6w1PDSXBt4VM4qEy47ZtuCa5V5qJb0LDYbCNUbHVtFjW6kgiafXXz9ZWQNGb8FETLcaYgUZK1mBjagV1q8E3oC9TqlNzb00uLBrKjgixaCcGvrwPwHAtCkFQJwI6YDLDCmWKsISjweCkAIJoGdiweQuQGHrUgbMQDXw0PoTgkhF3HtXZwXgCgQB3qPcumdpA4CwBgIgFAmyEh0GiOQSgaB5GgZiMALgmwzCkCwOaNYAA1PAmBEy/gepwA9NBaDRnfULZ9lJmDEBpDh3gJHaS/giNoSoX6D2QaMgQX8DAnLPqwBELwwA3C9nfdwXgWAcRGHEN%2BxDeArFVEEvxld7LOXPqjG0Z9/KIjUjI0zZ9zVnQUcWFQAwwAFBoYw1hxgFGZCCBEGIdgUhzPyCUGoZ9ugWgGCMCgG5%2Bg8ARHfZARYEKFKcAALRnAOqYTdFg5r7AC7%2BKsAXqK9ki9RZkzUhSxbFGqQQeBkAJcpoJD8aQEtqpctJSLzxUABeymhNICheACWiF2y08BFgVHbH4CArhRjNFIIEaYRQSjZGSKkAQHX%2Bu5DSL0XrcxWjtGqJMYb4w2j0Zm90cb/RShDG6HN9b9QVuzFKE1ndawJCzvnU%2BsTa6OD7FUAADnvgF%2B%2BkhiTICy3BjUVYIC4EINIrYEDeBfq0PMRY1775mA1Nfe9HBH2kBYDeu9S6V3nbfR%2Bw9x7Fh/sA8sAg9zwMQEgyB%2BgxBQj904Nd2793HvPc2K93gBZPv1b0PwCzohxA2YZ3ZlQ6gxNOdIC%2BJgCQdPg4XaQOHNXOC/jZFS0cJO7sPeAE9nVlO3seCg/j%2BuP3kffoB6QM9WAYiXrnRD3g0Pb1C%2BfQj2wSO/snqvTD8HmxTvw9fer/7x2OBmHtyLjgv2UeLFyykZwkggA%3D%3D");
+                        open_link("https://compiler-explorer.com/#z:OYLghAFBqd5QCxAYwPYBMCmBRdBLAF1QCcAaPECAMzwBtMA7AQwFtMQByARg9KtQYEAysib0QXACx8BBAKoBnTAAUAHpwAMvAFYTStJg1DIApACYAQuYukl9ZATwDKjdAGFUtAK4sGe1wAyeAyYAHI%2BAEaYxBIAnKQADqgKhE4MHt6%2BekkpjgJBIeEsUTFc8XaYDmlCBEzEBBk%2Bfly2mPZ5DDV1BAVhkdFxtrX1jVktCsM9wX3FA2UAlLaoXsTI7BzmAMzByN5YANQmm27IE/ioR9gmGgCC13dm21QMWFT7ACLYAGLYAEoA%2Bm5lMp7ltXtMPt8/oDgaDbgB6eH7G77LxKKheWj7FhMZDEVD7Ij7YCYAj7OoRQjEOoAT32aAORMwqkqXgImHJZIICA5rn2qDeTH2CjQCQ5aOCwH2vxuAElZeSXvsDMV0EwFAA6e6I/YAFQQeAU%2BwS%2BIAbngsEbXtFhTTBExVMK8Cw6Hg6oSCcBPIZgBq9QajYbUejMft%2BMR9sF2cQqLjJdqkQB3QgIfZuZHKWVG7lMMkhTDocmHMxmLDBQjmMz8iOV3aYQxeBKVsNeBhVAQe/ZRelieiF3OEnn7PkC4WizBahFI/VBvH19lGhkcnNk2f0Qw2qKiNEcmnLfboARgDh5zAFztz3Mc2ioAhG0cy%2BX7RPUhJi4iauE3HWhADyuuwEB/Q5a0IxxPECSDdUFB8c8iW7SsGFQZk1gSAhmwiOlXiYTECEnb8kX2IjiLBTAaBCSEfgBAB1WVdQACX%2BbAAA03GwZRdVlX9QiEckIlQU0OUrUCNQQN9myJXtUETYdVFQjpswJbtuXxRMGATYjNOCFIDlA4VanZNhBCNCAxG5ZZgFTBVE2WWhCwNSzaDpJh0HNJRyWAJhtNXAh5lBR48CoV5KOhWiGKY1j2M47ihH8zZwQoz4qP%2BP8WLYjj9iQlDMDQ6gxCUPzbi2NolDihKOSS6FUsijKsrknKCAgAhiC8TBCoeTZXECr8tkC/Z/n%2BZAEm8BRhrRQ5NiuTZ3n2MwNC4AB2DRNgCL8dXeMibXA/F9ggS4jhmtxrGsRb5hAe5DOGq8jjcAgaTFZg2DTDBMH224JhahwPk2msFqsW5NI8A4lyOf6CPpAQJmZE1hUbJJ6l2/bprTY7LDms64r6gahpGsajSRma5rmjQzFWgHiLQBgodUGGNqoaIICBjkIhvZAAGt5hCgFqvS3V9iApcIBZ1B2c5kw/vF957k0ynqZhgA/OmGc5yrud/NKosOP6IawCA/M2CwtalorHhK17yaIpXiEZl6u1ZjmuZS9War5gWXqF%2B2xYlhbjZRYjFZ%2BvXHZ5zXxcNwX9cNyW4q6qhQR90GyrIiEAHFsFCf5VZSm4AFlsH%2BeibjcABpCBHswUgIdbaNOfL4tNi2KvBGiJPyI5NOM6z0Jc%2BwMvWArpua/2DvM6hbme4LovS/Lyu0Gr6J2tItuDx%2B776YjEeu57iB/lA/5K4GtxfzkUIAIBf4xeRkwAFYrDMAA2G/3iDrvnd5nrTdoUqiqnNettxHae1JoHRRpYE6XB2qXQMOyG6d0Hr92elgN6NwPpeC%2BlbLWYNAa2xBgbaWxErY2wOMLUWwc36azdrrEhDsw7RwtvsAO68X5jydhrDKYcdaYD1qDI28cpZ4Pes1NBZIrb/BTowaIuYSCYMJJgFgV0YHHDgYwBBTNLh/2IDdNRk1%2BTvikTWSwRCORLhViwkO7DtbEFJCsBgGitEvX2n9EGCcDZG14QIjq5Vh7p1HslbuedJ4lz7mwWeyxm7EFrggrYjc57hNbqnHxW887BIHrEoem8zET0LkEmeg8F7xIonpHCRIMl%2BO3rvH6%2B9%2BqAmPqfaEF8JozVEeIkI1IiCaO9jNawhxb7mEftfZ%2Bpi/HkI4h/TqLxuo/3BtgVQrBhrigUEwEk51f7FIJAoVAbB/gYjbKZNkFwH6RgYAkNkXswY6k0npDhqMLDBBOehVx8IABU%2BxlBsk4XbEWbN9g8isZ2ZkrJ2ScmHEqUcIpUBikrnuLwPZbFWPXp2Ssdy2TNmCIOWcttqHKjwGzDkSFiA4ixE8pE0cPEXOIjqe5/JuQ2iXD86Iu59yJkMFyAkALkBsmZmREgIFV60BxXikghKNKaSsQQGxRz7mJ1/nQ6Zsz5H0GxF5WxEAFAIFsoWE0UZ9hcC7Nyv5ZgMa/21TiYIQdaG/0uavDhWrBBUD2iWHktAbyVz0jZYgdkwBgFmjfNw6kSyR3cecwixErna1tQQe1lYnUupXgi91nrvVcF9f6w1PDSXBt4VM4qEy47ZtuCa5V5qJb0LDYbCNUbHVtFjW6kgiafXXz9ZWQNGb8FETLcaYgUZK1mBjagV1q8E3oC9TqlNzb00uLBrKjgixaCcGvrwPwHAtCkFQJwI6YDLDCmWKsISjweCkAIJoGdiweQuQGHrUgbMQDXw0PoTgkhF3HtXZwXgCgQB3qPcumdpA4CwBgIgFAmyEh0GiOQSgaB5GgZiMALgmwzCkCwOaNYAA1PAmBEy/gepwA9NBaDRnfULZ9lJmDEBpDh3gJHaS/giNoSoX6D2QaMgQX8DAnLPqwBELwwA3C9nfdwXgWAcRGHEN%2BxDeArFVEEvxld7LOXPqjG0Z9/KIjUjI0zZ9zVnQUcWFQAwwAFBoYw1hxgFGZCCBEGIdgUhzPyCUGoZ9ugWgGCMCgG5%2Bg8ARHfZARYEKFKcAALRnAOqYTdFg5r7AC7%2BKsAXqK9ki9RZkzUhSxbFGqQQeBkAJcpoJD8aQEtqpctJSLzxUABeymhNICheACWiF2y08BFgVHbH4CArhRjNFIIEaYRQSjZGSKkAQHX%2Bu5DSL0XrcxWjtGqJMYb4w2j0Zm90cb/RShDG6HN9b9QVuzFKE1ndawJCzvnU%2BsTa6OD7FUAADnvgF%2B%2BkhiTICy3BjUVYIC4EINIrYEDeBfq0PMRY1775mA1Nfe9HBH2kBYDeu9S6V3nbfR%2Bw9x7Fh/sA8sAg9zwMQEgyB%2BgxBQj904Nd2793HvPc2K93gBZPv1b0PwCzohxA2YZ3ZlQ6gxNOdIC%2BJgCQdPg4XaQOHNXOC/jZFS0cJO7sPeAE9nVlO3seCg/j%2BuP3kffoB6QM9WAYiXrnRD3g0Pb1C%2BfQj2wSO/snqvTD8HmxTvw9fer/7x2OBmHtyLjgv2UeLFyykZwkggA%3D%3D");
                     }
                     ImGui::SetItemTooltip("Click this button for an interactive demo of defer.hpp (also copies the link to your clipboard)");
                     ImGui::Separator();

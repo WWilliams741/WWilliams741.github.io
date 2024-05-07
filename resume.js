@@ -1168,13 +1168,10 @@ function dbg(text) {
 // end include: runtime_debug.js
 // === Body ===
 
-function paste_js(callback,callback_data) { document.addEventListener('paste', (event) => { Module["ccall"]('paste_return', 'number', ['string', 'number', 'number'], [event.clipboardData.getData('text/plain'), callback, callback_data]); }); }
-function copy_js(callback,callback_data) { document.addEventListener('copy', (event) => { const content_ptr = Module["ccall"]('copy_return', 'number', ['number', 'number'], [callback, callback_data]); event.clipboardData.setData('text/plain', UTF8ToString(content_ptr)); event.preventDefault(); }); }
-function copy_async_js(content_ptr) { navigator.clipboard.writeText(UTF8ToString(content_ptr)); }
 function get_canvas_width() { return Module.canvas.width; }
 function get_canvas_height() { return Module.canvas.height; }
 function resize_canvas_to_screen_dimensions() { var w = screen.width; var h = screen.height; var DPR = window.devicePixelRatio; w = Math.round(DPR * w); h = Math.round(DPR * h); if (w < h) { var temp = w; w = h; h = temp; } Module.canvas.width = w; Module.canvas.height = h; }
-function open_link_through_clipboard() { navigator.clipboard.readText().then( (clipText) => (window.open(clipText, "_blank")) ); }
+function open_link(str) { let link = UTF8ToString(str); window.open(link, "_blank"); }
 
 
 // end include: preamble.js
@@ -7799,8 +7796,6 @@ var wasmImports = {
   /** @export */
   abort: _abort,
   /** @export */
-  copy_async_js: copy_async_js,
-  /** @export */
   emscripten_memcpy_js: _emscripten_memcpy_js,
   /** @export */
   emscripten_resize_heap: _emscripten_resize_heap,
@@ -8025,14 +8020,12 @@ var wasmImports = {
   /** @export */
   invoke_viiii: invoke_viiii,
   /** @export */
-  open_link_through_clipboard: open_link_through_clipboard,
+  open_link: open_link,
   /** @export */
   resize_canvas_to_screen_dimensions: resize_canvas_to_screen_dimensions
 };
 var wasmExports = createWasm();
 var ___wasm_call_ctors = createExportWrapper('__wasm_call_ctors');
-var _paste_return = Module['_paste_return'] = createExportWrapper('paste_return');
-var _copy_return = Module['_copy_return'] = createExportWrapper('copy_return');
 var _main = Module['_main'] = createExportWrapper('__main_argc_argv');
 var _fflush = Module['_fflush'] = createExportWrapper('fflush');
 var _malloc = createExportWrapper('malloc');
@@ -8050,8 +8043,8 @@ var stackAlloc = createExportWrapper('stackAlloc');
 var _emscripten_stack_get_current = () => (_emscripten_stack_get_current = wasmExports['emscripten_stack_get_current'])();
 var ___cxa_is_pointer_type = createExportWrapper('__cxa_is_pointer_type');
 var dynCall_jiji = Module['dynCall_jiji'] = createExportWrapper('dynCall_jiji');
-var ___start_em_js = Module['___start_em_js'] = 248152;
-var ___stop_em_js = Module['___stop_em_js'] = 249213;
+var ___start_em_js = Module['___start_em_js'] = 248048;
+var ___stop_em_js = Module['___stop_em_js'] = 248446;
 function invoke_viiii(index,a1,a2,a3,a4) {
   var sp = stackSave();
   try {
