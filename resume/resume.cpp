@@ -192,9 +192,6 @@ int main(int, char**) {
     //io.ConfigViewportsNoAutoMerge = true;
     //io.ConfigViewportsNoTaskBarIcon = true;
 
-    // Set clipboard copy function:
-    // io.SetClipboardTextFn = set_clipboard;
-
     // Setup Dear ImGui style
     ImGui::StyleColorsDark();
     ImGuiStyle& style = ImGui::GetStyle();
@@ -280,15 +277,13 @@ int main(int, char**) {
 
                         ImGui::TextWrapped("Hello, my name is Walker Williams. I am a very passionate programmer and this is my resume, written in C++, and put on the web for you, recruiter, potential employer, or casual viewer, to look through.");
                         ImGui::NewLine();
-                        ImGui::TextWrapped("You might ask yourself: \"Why write your resume in C++?\" The answer is simple. Regular resumes are boring and recruiters and employers go through them day by day looking for certain qualities. I figured the best way to show them that I'm a competent programmer is to program my own resume in a language I am familiar with. Want to know if I can program in C++ right away without spending time looking at my resume? Well guess what? This resume is written in C++ so now you know the answer is yes. This also spices up the recruiter's or employer's life and gives them something they can interact with for once instead of a word document or a pdf they boringly scan for key words, usually with a computer program. It's a nice little surprise to break the day to day monotany.");
+                        ImGui::TextWrapped("You might ask yourself: \"Why write your resume in C++?\" The answer is simple. Regular resumes are boring and recruiters and employers go through them day by day looking for certain qualities. I figured the best way to show them that I'm a competent programmer is to program my own resume in a language I am familiar with. Want to know if I can program in C++ right away without spending time looking at my resume? Well guess what? This resume is written in C++, so now you know the answer is yes. This also spices up the recruiter's or employer's life, and gives them something they can interact with for once, instead of a word document or a pdf they boringly scan for key words, usually with a computer program. It's a nice little surprise to break the day to day monotany.");
                         ImGui::NewLine();
                         ImGui::TextWrapped("Fun fact: This is the first UI I've ever written as a programmer. I learned on the fly just to write this resume.");
                         ImGui::NewLine();
-                        ImGui::TextWrapped("PSSSSSSSSSSSSSSSSSSSSST: There is a style button at the top left corner of this resume. Try clicking it and mess with some of the values.");
+                        ImGui::TextWrapped("PSSSSSSSSSSSSSSSSSSSSST: There is a style button at the top left corner of this resume. Try clicking it and mess with some of the values (especially colors).");
                         ImGui::NewLine();
-                        ImGui::TextWrapped("Click this button to view this resume's codebase on my github (also copies the link to your clipboard):");
                         if (ImGui::Button("Resume Code")) {
-                            // emscripten_browser_clipboard::copy("https://github.com/WWilliams741/WWilliams741.github.io");
                             open_link("https://github.com/WWilliams741/WWilliams741.github.io");
                         }
                     }
@@ -353,10 +348,8 @@ int main(int, char**) {
                             IMGUI_BULLETTEXTWRAPPED("Currently a proud member of the closed beta for the ");
                             ImGui::SameLine();
                             if (ImGui::Button("Jai programming language")) {
-                                // emscripten_browser_clipboard::copy("https://github.com/Jai-Community/Jai-Community-Library/wiki");
                                 open_link("https://github.com/Jai-Community/Jai-Community-Library/wiki");
                             }
-                            ImGui::SetItemTooltip("Click this button to get information about the Jai programming language (also copies the link to your clipboard)");
                             IMGUI_BULLETTEXTWRAPPED("Beta access is not easily given out, you have to prove you're worthy of being given access");
                             IMGUI_BULLETTEXTWRAPPED("Only a couple hundred other people are in the beta");
                             IMGUI_BULLETTEXTWRAPPED("Beta is run by Jonathan Blow, creator of best selling games \"Braid\" and \"The Witness\"");
@@ -367,8 +360,8 @@ int main(int, char**) {
                         if (ImGui::TreeNode("Agile Development")) {
                             defer { ImGui::TreePop(); };
                             IMGUI_BULLETTEXTWRAPPED("Jira boards and filling out tickets for sprints");
-                            IMGUI_BULLETTEXTWRAPPED("Markdown documentation on Confluence or Github Wikis");
-                            IMGUI_BULLETTEXTWRAPPED("CI (Continuous Integration) using Github PRs (Pull Requests), Code Reviews with lead sign off, and Jenkins/AWS (Amazon Web Services)");
+                            IMGUI_BULLETTEXTWRAPPED("Markdown documentation on Confluence or GitHub Wikis");
+                            IMGUI_BULLETTEXTWRAPPED("CI (Continuous Integration) using GitHub PRs (Pull Requests), Code Reviews with lead sign off, and Jenkins/AWS (Amazon Web Services)");
                             IMGUI_BULLETTEXTWRAPPED("SCRUM meetings twice a week to check in on progress and potential blockers");
                             IMGUI_BULLETTEXTWRAPPED("Sprints that last 1 month+ with pre-planning");
                             IMGUI_BULLETTEXTWRAPPED("Consistent communication on Slack with team members on a daily basis");
@@ -417,6 +410,20 @@ int main(int, char**) {
 
                         if (open_action != -1)
                             ImGui::SetNextItemOpen(open_action != 0);
+                        if (ImGui::TreeNode("Software Engineer - IBM                   (January   2024 -> Current)")) {
+                            defer { ImGui::TreePop(); };
+
+                            IMGUI_BULLETTEXTWRAPPED("Languages: C/C++");
+                            IMGUI_BULLETTEXTWRAPPED("Working as a backend developer for IBM's ");
+                            ImGui::SameLine();
+                            if (ImGui::Button("Datapower Gateway")) {
+                                open_link("https://www.ibm.com/products/datapower-gateway");
+                            }
+                            IMGUI_BULLETTEXTWRAPPED("Maintaining and updating a 30+ year old legacy codebase");
+                        }
+
+                        if (open_action != -1)
+                            ImGui::SetNextItemOpen(open_action != 0);
                         if (ImGui::TreeNode("Software Engineer - FlexGen Power Systems (September 2020 -> August 2023)")) {
                             defer { ImGui::TreePop(); };
 
@@ -426,15 +433,31 @@ int main(int, char**) {
                             IMGUI_BULLETTEXTWRAPPED("I developed, along with 3 other people in C++, FlexGen's ESS (Energy Storage System) Controller, their lowest level controller and one of their most important pieces of software");
                             IMGUI_BULLETTEXTWRAPPED("I have written, solo in bash, their entire deployment/installation process, later this was converted to Ansible by another team entirely");
                             IMGUI_BULLETTEXTWRAPPED("I have rewritten, solo in C++, core communication software that is used throughout the entire distributed network, bringing the CPU usage down from 112%% to 1-3%% in our largest use cases and increasing networking performance by about 2-3 times");
-                            IMGUI_BULLETTEXTWRAPPED("I have rewritten, solo in C, C++, and golang, the core Unix IPC (Inter Process Communication) architecture that underlied everything, taking a large test that used to take 3 minutes down to 3 seconds, and causing an end-to-end all possible inputs test to go from 1 week down to 1 day or less without breaking anyone's code");
+                            IMGUI_BULLETTEXTWRAPPED("I have rewritten, solo in C, C++, and golang, the core Unix IPC (Inter Process Communication) architecture that underlied everything, taking a large test that used to take 3 minutes down to 3 seconds, and causing an end-to-end all possible inputs test to go from 1 week down to 1 day or less, without breaking anyone's code");
+                            IMGUI_BULLETTEXTWRAPPED("I have mentored a new software engineer to rewrite a core piece of integration architecture from scratch, in golang, taking the lines of config from the thousands down to the hundreds by adding programmatic scripting language support");
                             {
                                 ImGui::Indent();
                                 defer { ImGui::Unindent(); };
-                                IMGUI_BULLETTEXTWRAPPED("Because of the above achievements FlexGen was able to properly scale to larger sites beyond 100+ MW allowing them to take on some of the largest BESS projects in the world and become a multi-million dollar success story, going from 50 employees to hundreds of employees");
+                                IMGUI_BULLETTEXTWRAPPED("Because of the above achievements, FlexGen was able to properly scale to larger sites beyond 100+ MW, allowing them to take on some of the largest BESS projects in the world, and become a multi-million dollar success story, going from 50 employees to hundreds of employees");
                             }
-                            IMGUI_BULLETTEXTWRAPPED("I have mentored a new software engineer to rewrite a core piece of integration architecture from scratch in golang, taking the lines of config from the thousands down to the hundreds and adding programmatic syntax");
-                            IMGUI_BULLETTEXTWRAPPED("I was known as one of their best Software Engineers, and could not be given the title of Senior Software Engineer only because I hadn't been there long enough (the lead of software at the time - John Calcagni - said so)");
-                            IMGUI_BULLETTEXTWRAPPED("Because of the above achivements I have been given glowing recommendations on my LinkedIn profile from some of the Senior Software Engineers and Managers, everyone respected my expertise so much they wouldn't even allow a C++ linter without my approval");
+                            IMGUI_BULLETTEXTWRAPPED("I was known as one of their best Software Engineers, even to the point where not even a C++ linter was used without my approval, and have received glowing recommendations from my fellow co-workers, including the Director of Software at FlexGen: ");
+                            {
+                                ImGui::Indent();
+                                defer { ImGui::Unindent(); };
+                                ImGui::BulletText("");
+                                ImGui::SameLine();
+                                if (ImGui::Button("Kyle Brezina")) {
+                                    open_link("https://www.linkedin.com/in/kyle-brezina-b7066b57/");
+                                }
+                                ImGui::SameLine();
+                                ImGui::Text(" (you can find his recommendation on ");
+                                ImGui::SameLine();
+                                if (ImGui::Button("my LinkedIn")) {
+                                    open_link("https://www.linkedin.com/in/walker-williams-02223a1a8");
+                                }
+                                ImGui::SameLine();
+                                ImGui::Text(")");
+                            }
                         }
                     }
                 }
@@ -465,6 +488,7 @@ int main(int, char**) {
                             IMGUI_BULLETTEXTWRAPPED("Working with a previous FlexGen employee, Sam Rappl, on a hydroponics startup");
                             IMGUI_BULLETTEXTWRAPPED("Preliminary work is being done using Arduino Uno controllers, sensors, and custom circuits on a bread board");
                             IMGUI_BULLETTEXTWRAPPED("We have already applied for two government grants, each worth $100,000+");
+                            IMGUI_BULLETTEXTWRAPPED("We have at least 4 people actively working on the project, with at least 12 people in total interested in it.");
                         }
                         if (open_action != -1)
                             ImGui::SetNextItemOpen(open_action != 0);
@@ -473,10 +497,8 @@ int main(int, char**) {
                             IMGUI_BULLETTEXTWRAPPED("Currently a proud member of the closed beta for the ");
                             ImGui::SameLine();
                             if (ImGui::Button("Jai programming language")) {
-                                // emscripten_browser_clipboard::copy("https://github.com/Jai-Community/Jai-Community-Library/wiki");
                                 open_link("https://github.com/Jai-Community/Jai-Community-Library/wiki");
                             }
-                            ImGui::SetItemTooltip("Click this button to get information about the Jai programming language (also copies the link to your clipboard)");
                             IMGUI_BULLETTEXTWRAPPED("Beta access is not easily given out, you have to prove you're worthy of being given access");
                             IMGUI_BULLETTEXTWRAPPED("Only a couple hundred other people are in the beta");
                             IMGUI_BULLETTEXTWRAPPED("Beta is run by Jonathan Blow, creator of best selling games \"Braid\" and \"The Witness\"");
@@ -485,7 +507,7 @@ int main(int, char**) {
                         }
                         if (open_action != -1)
                             ImGui::SetNextItemOpen(open_action != 0);
-                        if (ImGui::TreeNode("Arduino Uno Simon Say's Game - Completed")) {
+                        if (ImGui::TreeNode("Arduino Uno Simon Says Game - Completed")) {
                             defer { ImGui::TreePop(); };
                             IMGUI_BULLETTEXTWRAPPED("A simple game with four buttons on a custom built circuit and an Arduino Uno");
                             IMGUI_BULLETTEXTWRAPPED("A random order of lights would be displayed, you would then have to match the light order with the buttons, then another light is added next round");
@@ -493,7 +515,6 @@ int main(int, char**) {
                             IMGUI_BULLETTEXTWRAPPED("");
                             ImGui::SameLine();
                             if (ImGui::Button("Code and Demo")) {
-                                // emscripten_browser_clipboard::copy("https://github.com/WWilliams741/Simon-Says-Game");
                                 open_link("https://github.com/WWilliams741/Simon-Says-Game");
                             }
                         }
@@ -539,17 +560,13 @@ int main(int, char**) {
                     ImGui::NewLine();
 
                     if (ImGui::Button("Defer Code")) {
-                        // emscripten_browser_clipboard::copy("https://github.com/WWilliams741/Utilities/blob/main/defer.hpp");
                         open_link("https://github.com/WWilliams741/Utilities/blob/main/defer.hpp");
                     }
-                    ImGui::SetItemTooltip("Click this button for the defer.hpp file on my github (also copies the link to your clipboard)");
                     ImGui::SameLine();
 
                     if (ImGui::Button("Live Demo")) {
-                        // emscripten_browser_clipboard::copy("https://compiler-explorer.com/#z:OYLghAFBqd5QCxAYwPYBMCmBRdBLAF1QCcAaPECAMzwBtMA7AQwFtMQByARg9KtQYEAysib0QXACx8BBAKoBnTAAUAHpwAMvAFYTStJg1DIApACYAQuYukl9ZATwDKjdAGFUtAK4sGe1wAyeAyYAHI%2BAEaYxBIAnKQADqgKhE4MHt6%2BekkpjgJBIeEsUTFc8XaYDmlCBEzEBBk%2Bfly2mPZ5DDV1BAVhkdFxtrX1jVktCsM9wX3FA2UAlLaoXsTI7BzmAMzByN5YANQmm27IE/ioR9gmGgCC13dm21QMWFT7ACLYAGLYAEoA%2Bm5lMp7ltXtMPt8/oDgaDbgB6eH7G77LxKKheWj7FhMZDEVD7Ij7YCYAj7OoRQjEOoAT32aAORMwqkqXgImHJZIICA5rn2qDeTH2CjQCQ5aOCwH2vxuAElZeSXvsDMV0EwFAA6e6I/YAFQQeAU%2BwS%2BIAbngsEbXtFhTTBExVMK8Cw6Hg6oSCcBPIZgBq9QajYbUejMft%2BMR9sF2cQqLjJdqkQB3QgIfZuZHKWVG7lMMkhTDocmHMxmLDBQjmMz8iOV3aYQxeBKVsNeBhVAQe/ZRelieiF3OEnn7PkC4WizBahFI/VBvH19lGhkcnNk2f0Qw2qKiNEcmnLfboARgDh5zAFztz3Mc2ioAhG0cy%2BX7RPUhJi4iauE3HWhADyuuwEB/Q5a0IxxPECSDdUFB8c8iW7SsGFQZk1gSAhmwiOlXiYTECEnb8kX2IjiLBTAaBCSEfgBAB1WVdQACX%2BbAAA03GwZRdVlX9QiEckIlQU0OUrUCNQQN9myJXtUETYdVFQjpswJbtuXxRMGATYjNOCFIDlA4VanZNhBCNCAxG5ZZgFTBVE2WWhCwNSzaDpJh0HNJRyWAJhtNXAh5lBR48CoV5KOhWiGKY1j2M47ihH8zZwQoz4qP%2BP8WLYjj9iQlDMDQ6gxCUPzbi2NolDihKOSS6FUsijKsrknKCAgAhiC8TBCoeTZXECr8tkC/Z/n%2BZAEm8BRhrRQ5NiuTZ3n2MwNC4AB2DRNgCL8dXeMibXA/F9ggS4jhmtxrGsRb5hAe5DOGq8jjcAgaTFZg2DTDBMH224JhahwPk2msFqsW5NI8A4lyOf6CPpAQJmZE1hUbJJ6l2/bprTY7LDms64r6gahpGsajSRma5rmjQzFWgHiLQBgodUGGNqoaIICBjkIhvZAAGt5hCgFqvS3V9iApcIBZ1B2c5kw/vF957k0ynqZhgA/OmGc5yrud/NKosOP6IawCA/M2CwtalorHhK17yaIpXiEZl6u1ZjmuZS9War5gWXqF%2B2xYlhbjZRYjFZ%2BvXHZ5zXxcNwX9cNyW4q6qhQR90GyrIiEAHFsFCf5VZSm4AFlsH%2BeibjcABpCBHswUgIdbaNOfL4tNi2KvBGiJPyI5NOM6z0Jc%2BwMvWArpua/2DvM6hbme4LovS/Lyu0Gr6J2tItuDx%2B776YjEeu57iB/lA/5K4GtxfzkUIAIBf4xeRkwAFYrDMAA2G/3iDrvnd5nrTdoUqiqnNettxHae1JoHRRpYE6XB2qXQMOyG6d0Hr92elgN6NwPpeC%2BlbLWYNAa2xBgbaWxErY2wOMLUWwc36azdrrEhDsw7RwtvsAO68X5jydhrDKYcdaYD1qDI28cpZ4Pes1NBZIrb/BTowaIuYSCYMJJgFgV0YHHDgYwBBTNLh/2IDdNRk1%2BTvikTWSwRCORLhViwkO7DtbEFJCsBgGitEvX2n9EGCcDZG14QIjq5Vh7p1HslbuedJ4lz7mwWeyxm7EFrggrYjc57hNbqnHxW887BIHrEoem8zET0LkEmeg8F7xIonpHCRIMl%2BO3rvH6%2B9%2BqAmPqfaEF8JozVEeIkI1IiCaO9jNawhxb7mEftfZ%2Bpi/HkI4h/TqLxuo/3BtgVQrBhrigUEwEk51f7FIJAoVAbB/gYjbKZNkFwH6RgYAkNkXswY6k0npDhqMLDBBOehVx8IABU%2BxlBsk4XbEWbN9g8isZ2ZkrJ2ScmHEqUcIpUBikrnuLwPZbFWPXp2Ssdy2TNmCIOWcttqHKjwGzDkSFiA4ixE8pE0cPEXOIjqe5/JuQ2iXD86Iu59yJkMFyAkALkBsmZmREgIFV60BxXikghKNKaSsQQGxRz7mJ1/nQ6Zsz5H0GxF5WxEAFAIFsoWE0UZ9hcC7Nyv5ZgMa/21TiYIQdaG/0uavDhWrBBUD2iWHktAbyVz0jZYgdkwBgFmjfNw6kSyR3cecwixErna1tQQe1lYnUupXgi91nrvVcF9f6w1PDSXBt4VM4qEy47ZtuCa5V5qJb0LDYbCNUbHVtFjW6kgiafXXz9ZWQNGb8FETLcaYgUZK1mBjagV1q8E3oC9TqlNzb00uLBrKjgixaCcGvrwPwHAtCkFQJwI6YDLDCmWKsISjweCkAIJoGdiweQuQGHrUgbMQDXw0PoTgkhF3HtXZwXgCgQB3qPcumdpA4CwBgIgFAmyEh0GiOQSgaB5GgZiMALgmwzCkCwOaNYAA1PAmBEy/gepwA9NBaDRnfULZ9lJmDEBpDh3gJHaS/giNoSoX6D2QaMgQX8DAnLPqwBELwwA3C9nfdwXgWAcRGHEN%2BxDeArFVEEvxld7LOXPqjG0Z9/KIjUjI0zZ9zVnQUcWFQAwwAFBoYw1hxgFGZCCBEGIdgUhzPyCUGoZ9ugWgGCMCgG5%2Bg8ARHfZARYEKFKcAALRnAOqYTdFg5r7AC7%2BKsAXqK9ki9RZkzUhSxbFGqQQeBkAJcpoJD8aQEtqpctJSLzxUABeymhNICheACWiF2y08BFgVHbH4CArhRjNFIIEaYRQSjZGSKkAQHX%2Bu5DSL0XrcxWjtGqJMYb4w2j0Zm90cb/RShDG6HN9b9QVuzFKE1ndawJCzvnU%2BsTa6OD7FUAADnvgF%2B%2BkhiTICy3BjUVYIC4EINIrYEDeBfq0PMRY1775mA1Nfe9HBH2kBYDeu9S6V3nbfR%2Bw9x7Fh/sA8sAg9zwMQEgyB%2BgxBQj904Nd2793HvPc2K93gBZPv1b0PwCzohxA2YZ3ZlQ6gxNOdIC%2BJgCQdPg4XaQOHNXOC/jZFS0cJO7sPeAE9nVlO3seCg/j%2BuP3kffoB6QM9WAYiXrnRD3g0Pb1C%2BfQj2wSO/snqvTD8HmxTvw9fer/7x2OBmHtyLjgv2UeLFyykZwkggA%3D%3D");
                         open_link("https://compiler-explorer.com/#z:OYLghAFBqd5QCxAYwPYBMCmBRdBLAF1QCcAaPECAMzwBtMA7AQwFtMQByARg9KtQYEAysib0QXACx8BBAKoBnTAAUAHpwAMvAFYTStJg1DIApACYAQuYukl9ZATwDKjdAGFUtAK4sGe1wAyeAyYAHI%2BAEaYxBIAnKQADqgKhE4MHt6%2BekkpjgJBIeEsUTFc8XaYDmlCBEzEBBk%2Bfly2mPZ5DDV1BAVhkdFxtrX1jVktCsM9wX3FA2UAlLaoXsTI7BzmAMzByN5YANQmm27IE/ioR9gmGgCC13dm21QMWFT7ACLYAGLYAEoA%2Bm5lMp7ltXtMPt8/oDgaDbgB6eH7G77LxKKheWj7FhMZDEVD7Ij7YCYAj7OoRQjEOoAT32aAORMwqkqXgImHJZIICA5rn2qDeTH2CjQCQ5aOCwH2vxuAElZeSXvsDMV0EwFAA6e6I/YAFQQeAU%2BwS%2BIAbngsEbXtFhTTBExVMK8Cw6Hg6oSCcBPIZgBq9QajYbUejMft%2BMR9sF2cQqLjJdqkQB3QgIfZuZHKWVG7lMMkhTDocmHMxmLDBQjmMz8iOV3aYQxeBKVsNeBhVAQe/ZRelieiF3OEnn7PkC4WizBahFI/VBvH19lGhkcnNk2f0Qw2qKiNEcmnLfboARgDh5zAFztz3Mc2ioAhG0cy%2BX7RPUhJi4iauE3HWhADyuuwEB/Q5a0IxxPECSDdUFB8c8iW7SsGFQZk1gSAhmwiOlXiYTECEnb8kX2IjiLBTAaBCSEfgBAB1WVdQACX%2BbAAA03GwZRdVlX9QiEckIlQU0OUrUCNQQN9myJXtUETYdVFQjpswJbtuXxRMGATYjNOCFIDlA4VanZNhBCNCAxG5ZZgFTBVE2WWhCwNSzaDpJh0HNJRyWAJhtNXAh5lBR48CoV5KOhWiGKY1j2M47ihH8zZwQoz4qP%2BP8WLYjj9iQlDMDQ6gxCUPzbi2NolDihKOSS6FUsijKsrknKCAgAhiC8TBCoeTZXECr8tkC/Z/n%2BZAEm8BRhrRQ5NiuTZ3n2MwNC4AB2DRNgCL8dXeMibXA/F9ggS4jhmtxrGsRb5hAe5DOGq8jjcAgaTFZg2DTDBMH224JhahwPk2msFqsW5NI8A4lyOf6CPpAQJmZE1hUbJJ6l2/bprTY7LDms64r6gahpGsajSRma5rmjQzFWgHiLQBgodUGGNqoaIICBjkIhvZAAGt5hCgFqvS3V9iApcIBZ1B2c5kw/vF957k0ynqZhgA/OmGc5yrud/NKosOP6IawCA/M2CwtalorHhK17yaIpXiEZl6u1ZjmuZS9War5gWXqF%2B2xYlhbjZRYjFZ%2BvXHZ5zXxcNwX9cNyW4q6qhQR90GyrIiEAHFsFCf5VZSm4AFlsH%2BeibjcABpCBHswUgIdbaNOfL4tNi2KvBGiJPyI5NOM6z0Jc%2BwMvWArpua/2DvM6hbme4LovS/Lyu0Gr6J2tItuDx%2B776YjEeu57iB/lA/5K4GtxfzkUIAIBf4xeRkwAFYrDMAA2G/3iDrvnd5nrTdoUqiqnNettxHae1JoHRRpYE6XB2qXQMOyG6d0Hr92elgN6NwPpeC%2BlbLWYNAa2xBgbaWxErY2wOMLUWwc36azdrrEhDsw7RwtvsAO68X5jydhrDKYcdaYD1qDI28cpZ4Pes1NBZIrb/BTowaIuYSCYMJJgFgV0YHHDgYwBBTNLh/2IDdNRk1%2BTvikTWSwRCORLhViwkO7DtbEFJCsBgGitEvX2n9EGCcDZG14QIjq5Vh7p1HslbuedJ4lz7mwWeyxm7EFrggrYjc57hNbqnHxW887BIHrEoem8zET0LkEmeg8F7xIonpHCRIMl%2BO3rvH6%2B9%2BqAmPqfaEF8JozVEeIkI1IiCaO9jNawhxb7mEftfZ%2Bpi/HkI4h/TqLxuo/3BtgVQrBhrigUEwEk51f7FIJAoVAbB/gYjbKZNkFwH6RgYAkNkXswY6k0npDhqMLDBBOehVx8IABU%2BxlBsk4XbEWbN9g8isZ2ZkrJ2ScmHEqUcIpUBikrnuLwPZbFWPXp2Ssdy2TNmCIOWcttqHKjwGzDkSFiA4ixE8pE0cPEXOIjqe5/JuQ2iXD86Iu59yJkMFyAkALkBsmZmREgIFV60BxXikghKNKaSsQQGxRz7mJ1/nQ6Zsz5H0GxF5WxEAFAIFsoWE0UZ9hcC7Nyv5ZgMa/21TiYIQdaG/0uavDhWrBBUD2iWHktAbyVz0jZYgdkwBgFmjfNw6kSyR3cecwixErna1tQQe1lYnUupXgi91nrvVcF9f6w1PDSXBt4VM4qEy47ZtuCa5V5qJb0LDYbCNUbHVtFjW6kgiafXXz9ZWQNGb8FETLcaYgUZK1mBjagV1q8E3oC9TqlNzb00uLBrKjgixaCcGvrwPwHAtCkFQJwI6YDLDCmWKsISjweCkAIJoGdiweQuQGHrUgbMQDXw0PoTgkhF3HtXZwXgCgQB3qPcumdpA4CwBgIgFAmyEh0GiOQSgaB5GgZiMALgmwzCkCwOaNYAA1PAmBEy/gepwA9NBaDRnfULZ9lJmDEBpDh3gJHaS/giNoSoX6D2QaMgQX8DAnLPqwBELwwA3C9nfdwXgWAcRGHEN%2BxDeArFVEEvxld7LOXPqjG0Z9/KIjUjI0zZ9zVnQUcWFQAwwAFBoYw1hxgFGZCCBEGIdgUhzPyCUGoZ9ugWgGCMCgG5%2Bg8ARHfZARYEKFKcAALRnAOqYTdFg5r7AC7%2BKsAXqK9ki9RZkzUhSxbFGqQQeBkAJcpoJD8aQEtqpctJSLzxUABeymhNICheACWiF2y08BFgVHbH4CArhRjNFIIEaYRQSjZGSKkAQHX%2Bu5DSL0XrcxWjtGqJMYb4w2j0Zm90cb/RShDG6HN9b9QVuzFKE1ndawJCzvnU%2BsTa6OD7FUAADnvgF%2B%2BkhiTICy3BjUVYIC4EINIrYEDeBfq0PMRY1775mA1Nfe9HBH2kBYDeu9S6V3nbfR%2Bw9x7Fh/sA8sAg9zwMQEgyB%2BgxBQj904Nd2793HvPc2K93gBZPv1b0PwCzohxA2YZ3ZlQ6gxNOdIC%2BJgCQdPg4XaQOHNXOC/jZFS0cJO7sPeAE9nVlO3seCg/j%2BuP3kffoB6QM9WAYiXrnRD3g0Pb1C%2BfQj2wSO/snqvTD8HmxTvw9fer/7x2OBmHtyLjgv2UeLFyykZwkggA%3D%3D");
                     }
-                    ImGui::SetItemTooltip("Click this button for an interactive demo of defer.hpp (also copies the link to your clipboard)");
                     ImGui::Separator();
                     {
                         ImGui::BeginChild("Scroll");

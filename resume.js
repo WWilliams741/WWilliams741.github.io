@@ -8043,8 +8043,8 @@ var stackAlloc = createExportWrapper('stackAlloc');
 var _emscripten_stack_get_current = () => (_emscripten_stack_get_current = wasmExports['emscripten_stack_get_current'])();
 var ___cxa_is_pointer_type = createExportWrapper('__cxa_is_pointer_type');
 var dynCall_jiji = Module['dynCall_jiji'] = createExportWrapper('dynCall_jiji');
-var ___start_em_js = Module['___start_em_js'] = 248048;
-var ___stop_em_js = Module['___stop_em_js'] = 248446;
+var ___start_em_js = Module['___start_em_js'] = 247984;
+var ___stop_em_js = Module['___stop_em_js'] = 248382;
 function invoke_viiii(index,a1,a2,a3,a4) {
   var sp = stackSave();
   try {
