@@ -315,7 +315,6 @@ int main(int, char**) {
                                 IMGUI_BULLETTEXTWRAPPED("The above projects were all multi-threaded environments in distributed systems");
                             }
                             IMGUI_BULLETTEXTWRAPPED("I was well known at FlexGen Power Systems as one of their best C++ programmers, not even a linter was used without my approval");
-                            IMGUI_BULLETTEXTWRAPPED("I know C++11 through C++20, but C++20 and up is my preferred standard");
                             IMGUI_BULLETTEXTWRAPPED("Familiar with the STL, Generic Programming, creating custom allocators/memory management, etc.");
                             IMGUI_BULLETTEXTWRAPPED("Familiar with debugging using Valgrind, GDB, step debugging using breakpoints in an IDE, etc.");
                             IMGUI_BULLETTEXTWRAPPED("Familiar with TDD (Test Driven Development) using Googletest or, my preferred favorite framework, Doctest");
