@@ -206,6 +206,12 @@ int main(int, char**) {
                         ImGui::BeginChild("Scroll");
                         defer { ImGui::EndChild(); };
 
+                        ImGui::TextWrapped("Contact Info:");
+                        IMGUI_BULLETTEXTWRAPPED("Email:        walkerw97@gmail.com");
+                        IMGUI_BULLETTEXTWRAPPED("Phone Number: +1 (919) 935-2397");
+                        // IMGUI_BULLETTEXTWRAPPED("GitHub:       +1 (919) 935-2397");
+                        ImGui::NewLine();
+
                         ImGui::TextWrapped("Hello, my name is Walker Williams. I am a very passionate programmer and this is my resume, written in C++, and put on the web for you, recruiter, potential employer, or casual viewer, to look through.");
                         ImGui::NewLine();
                         ImGui::TextWrapped("You might ask yourself: \"Why write your resume in C++?\" The answer is simple. Regular resumes are boring and recruiters and employers go through them day by day looking for certain qualities. I figured the best way to show them that I'm a competent programmer is to program my own resume in a language I am familiar with. Want to know if I can program in C++ right away without spending time looking at my resume? Well guess what? This resume is written in C++, so now you know the answer is yes. This also spices up the recruiter's or employer's life, and gives them something they can interact with for once, instead of a word document or a pdf they boringly scan for key words, usually with a computer program. It's a nice little surprise to break the day to day monotany.");
@@ -217,6 +223,12 @@ int main(int, char**) {
                         if (ImGui::Button("Resume Code")) {
                             open_link("https://github.com/WWilliams741/WWilliams741.github.io");
                         }
+
+
+                        // ImGui::TextWrapped("Contact Info:");
+                        // IMGUI_BULLETTEXTWRAPPED("Phone Number: +1 (919) 935-2397");
+                        // IMGUI_BULLETTEXTWRAPPED("Email:        walkerw97@gmail.com");
+                        // IMGUI_BULLETTEXTWRAPPED("GitHub:       +1 (919) 935-2397");
                     }
                 }
                 // Skills:
