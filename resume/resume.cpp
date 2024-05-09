@@ -16,75 +16,6 @@
 
 #include "../Utilities/defer.hpp" // NOTE(WALKER): Custom defer macro used to make code sleaker and more readable when using imgui (especially begin()/end() pairs)
 
-// NOTE(WALKER): This is the text from defer.hpp as a const char[] so people can view it:
-static const char defer_macro_code[] = R"DELIMITER(
-#ifndef DEFER_CPP
-#define DEFER_CPP
-
-// A useful macro to get arbitrary code to execute at the end of a scope using RAII and lambdas.
-// This provides defer syntax similiar to golang. This is useful for interfacing
-// with C APIs that need a "deinit" or "cleanup" function to be called at the end of scope.
-// This creates code that is cleaner because you don't need to create lots of RAII wrappers.
-
-// NOTE: The defer macro is assumed to be "noexcept" by default.
-//       #define DEFER_WITH_EXCEPTIONS above "defer.hpp" to allow exceptions to be thrown
-//       inside defer statements (although I would highly advise against it)
-#ifdef DEFER_WITH_EXCEPTIONS
-#define DEFER_NOEXCEPT noexcept(false)
-#else
-#define DEFER_NOEXCEPT noexcept(true)
-#endif
-
-#if __cplusplus >= 201703L
-
-// Defer macro (>= C++17):
-template<typename Code>
-struct Defer {
-    Code code;
-// constexpr support (>= C++20):
-#if __cplusplus >= 202002L
-    constexpr Defer(Code block) DEFER_NOEXCEPT : code(block) {}
-    constexpr ~Defer() DEFER_NOEXCEPT { code(); }
-#else
-    Defer(Code block) DEFER_NOEXCEPT : code(block) {}
-    ~Defer() DEFER_NOEXCEPT { code(); }
-#endif
-};
-#define GEN_DEFER_NAME_HACK(name, counter) name ## counter
-#define GEN_DEFER_NAME(name, counter) GEN_DEFER_NAME_HACK(name, counter)
-#define defer Defer GEN_DEFER_NAME(_defer_, __COUNTER__) = [&]() DEFER_NOEXCEPT
-
-#else
-
-// Defer macro (>= C++11)
-template<typename Code>
-struct Defer {
-    Code code;
-    Defer(Code block) DEFER_NOEXCEPT : code(block) {}
-    ~Defer() DEFER_NOEXCEPT { code(); }
-};
-struct Defer_Generator { template<typename Code> Defer<Code> operator +(Code code) DEFER_NOEXCEPT { return Defer<Code>{code}; } };
-#define GEN_DEFER_NAME_HACK(name, counter) name ## counter
-#define GEN_DEFER_NAME(name, counter) GEN_DEFER_NAME_HACK(name, counter)
-#define defer auto GEN_DEFER_NAME(_defer_, __COUNTER__) = Defer_Generator{} + [&]() DEFER_NOEXCEPT
-
-#endif
-
-// Example usage:
-// auto some_func(auto& input) {
-//     defer { ++input; /* Put code block here to execute at end of scope, you can refer to "input" in this code block like normal */ };
-//     // put other code here you want to execute before defer like normal
-//     return input;
-// }
-// Example main (should print 1 before 2):
-// int main() {
-//     defer { printf("hello, defer world! 2\n"); };
-//     defer { printf("hello, defer world! 1\n"); };
-// }
-
-#endif
-)DELIMITER";
-
 // NOTE(WALKER): This is a nice hack to get wrapped bullet text, not low level or deep, but it works well enough
 #define IMGUI_BULLETTEXTWRAPPED(fmt_str, ...) ImGui::BulletText(""); ImGui::SameLine(); ImGui::TextWrapped(fmt_str, ##__VA_ARGS__)
 
@@ -558,26 +489,31 @@ int main(int, char**) {
                     }
                 }
                 // defer macro gift:
-                if (ImGui::BeginTabItem("A Gift For You", nullptr, ImGuiTabItemFlags_None)) {
+                if (ImGui::BeginTabItem("Gifts For You", nullptr, ImGuiTabItemFlags_None)) {
                     defer { ImGui::EndTabItem(); };
 
-                    ImGui::TextWrapped("This is a gift to you, as a way of contributing to your, or the company that you represent's, codebase before even being hired, as a gesture of good will. It is a defer macro for C++11 and beyond. It was used to write this resume's code. Even if you don't hire me at least you got free code out of it.");
+                    ImGui::TextWrapped("These are gifts to you, as a way of contributing to your, or the company that you represent's, codebase before even being hired, as a gesture of good will. It is a defer macro for C++11 and beyond, and a unique take on memory management in C++ based on the Jai Programming Language. So, even if you don't hire me, at least you got free code out of it, and the world will be a better place.");
                     ImGui::NewLine();
 
+                    ImGui::BulletText("");
+                    ImGui::SameLine();
                     if (ImGui::Button("Defer Code")) {
                         open_link("https://github.com/WWilliams741/Utilities/blob/main/defer.hpp");
                     }
+                    ImGui::SameLine();
+                    ImGui::Text("(");
                     ImGui::SameLine();
 
                     if (ImGui::Button("Live Demo")) {
                         open_link("https://compiler-explorer.com/#z:OYLghAFBqd5QCxAYwPYBMCmBRdBLAF1QCcAaPECAMzwBtMA7AQwFtMQByARg9KtQYEAysib0QXACx8BBAKoBnTAAUAHpwAMvAFYTStJg1DIApACYAQuYukl9ZATwDKjdAGFUtAK4sGe1wAyeAyYAHI%2BAEaYxBIAnKQADqgKhE4MHt6%2BekkpjgJBIeEsUTFc8XaYDmlCBEzEBBk%2Bfly2mPZ5DDV1BAVhkdFxtrX1jVktCsM9wX3FA2UAlLaoXsTI7BzmAMzByN5YANQmm27IE/ioR9gmGgCC13dm21QMWFT7ACLYAGLYAEoA%2Bm5lMp7ltXtMPt8/oDgaDbgB6eH7G77LxKKheWj7FhMZDEVD7Ij7YCYAj7OoRQjEOoAT32aAORMwqkqXgImHJZIICA5rn2qDeTH2CjQCQ5aOCwH2vxuAElZeSXvsDMV0EwFAA6e6I/YAFQQeAU%2BwS%2BIAbngsEbXtFhTTBExVMK8Cw6Hg6oSCcBPIZgBq9QajYbUejMft%2BMR9sF2cQqLjJdqkQB3QgIfZuZHKWVG7lMMkhTDocmHMxmLDBQjmMz8iOV3aYQxeBKVsNeBhVAQe/ZRelieiF3OEnn7PkC4WizBahFI/VBvH19lGhkcnNk2f0Qw2qKiNEcmnLfboARgDh5zAFztz3Mc2ioAhG0cy%2BX7RPUhJi4iauE3HWhADyuuwEB/Q5a0IxxPECSDdUFB8c8iW7SsGFQZk1gSAhmwiOlXiYTECEnb8kX2IjiLBTAaBCSEfgBAB1WVdQACX%2BbAAA03GwZRdVlX9QiEckIlQU0OUrUCNQQN9myJXtUETYdVFQjpswJbtuXxRMGATYjNOCFIDlA4VanZNhBCNCAxG5ZZgFTBVE2WWhCwNSzaDpJh0HNJRyWAJhtNXAh5lBR48CoV5KOhWiGKY1j2M47ihH8zZwQoz4qP%2BP8WLYjj9iQlDMDQ6gxCUPzbi2NolDihKOSS6FUsijKsrknKCAgAhiC8TBCoeTZXECr8tkC/Z/n%2BZAEm8BRhrRQ5NiuTZ3n2MwNC4AB2DRNgCL8dXeMibXA/F9ggS4jhmtxrGsRb5hAe5DOGq8jjcAgaTFZg2DTDBMH224JhahwPk2msFqsW5NI8A4lyOf6CPpAQJmZE1hUbJJ6l2/bprTY7LDms64r6gahpGsajSRma5rmjQzFWgHiLQBgodUGGNqoaIICBjkIhvZAAGt5hCgFqvS3V9iApcIBZ1B2c5kw/vF957k0ynqZhgA/OmGc5yrud/NKosOP6IawCA/M2CwtalorHhK17yaIpXiEZl6u1ZjmuZS9War5gWXqF%2B2xYlhbjZRYjFZ%2BvXHZ5zXxcNwX9cNyW4q6qhQR90GyrIiEAHFsFCf5VZSm4AFlsH%2BeibjcABpCBHswUgIdbaNOfL4tNi2KvBGiJPyI5NOM6z0Jc%2BwMvWArpua/2DvM6hbme4LovS/Lyu0Gr6J2tItuDx%2B776YjEeu57iB/lA/5K4GtxfzkUIAIBf4xeRkwAFYrDMAA2G/3iDrvnd5nrTdoUqiqnNettxHae1JoHRRpYE6XB2qXQMOyG6d0Hr92elgN6NwPpeC%2BlbLWYNAa2xBgbaWxErY2wOMLUWwc36azdrrEhDsw7RwtvsAO68X5jydhrDKYcdaYD1qDI28cpZ4Pes1NBZIrb/BTowaIuYSCYMJJgFgV0YHHDgYwBBTNLh/2IDdNRk1%2BTvikTWSwRCORLhViwkO7DtbEFJCsBgGitEvX2n9EGCcDZG14QIjq5Vh7p1HslbuedJ4lz7mwWeyxm7EFrggrYjc57hNbqnHxW887BIHrEoem8zET0LkEmeg8F7xIonpHCRIMl%2BO3rvH6%2B9%2BqAmPqfaEF8JozVEeIkI1IiCaO9jNawhxb7mEftfZ%2Bpi/HkI4h/TqLxuo/3BtgVQrBhrigUEwEk51f7FIJAoVAbB/gYjbKZNkFwH6RgYAkNkXswY6k0npDhqMLDBBOehVx8IABU%2BxlBsk4XbEWbN9g8isZ2ZkrJ2ScmHEqUcIpUBikrnuLwPZbFWPXp2Ssdy2TNmCIOWcttqHKjwGzDkSFiA4ixE8pE0cPEXOIjqe5/JuQ2iXD86Iu59yJkMFyAkALkBsmZmREgIFV60BxXikghKNKaSsQQGxRz7mJ1/nQ6Zsz5H0GxF5WxEAFAIFsoWE0UZ9hcC7Nyv5ZgMa/21TiYIQdaG/0uavDhWrBBUD2iWHktAbyVz0jZYgdkwBgFmjfNw6kSyR3cecwixErna1tQQe1lYnUupXgi91nrvVcF9f6w1PDSXBt4VM4qEy47ZtuCa5V5qJb0LDYbCNUbHVtFjW6kgiafXXz9ZWQNGb8FETLcaYgUZK1mBjagV1q8E3oC9TqlNzb00uLBrKjgixaCcGvrwPwHAtCkFQJwI6YDLDCmWKsISjweCkAIJoGdiweQuQGHrUgbMQDXw0PoTgkhF3HtXZwXgCgQB3qPcumdpA4CwBgIgFAmyEh0GiOQSgaB5GgZiMALgmwzCkCwOaNYAA1PAmBEy/gepwA9NBaDRnfULZ9lJmDEBpDh3gJHaS/giNoSoX6D2QaMgQX8DAnLPqwBELwwA3C9nfdwXgWAcRGHEN%2BxDeArFVEEvxld7LOXPqjG0Z9/KIjUjI0zZ9zVnQUcWFQAwwAFBoYw1hxgFGZCCBEGIdgUhzPyCUGoZ9ugWgGCMCgG5%2Bg8ARHfZARYEKFKcAALRnAOqYTdFg5r7AC7%2BKsAXqK9ki9RZkzUhSxbFGqQQeBkAJcpoJD8aQEtqpctJSLzxUABeymhNICheACWiF2y08BFgVHbH4CArhRjNFIIEaYRQSjZGSKkAQHX%2Bu5DSL0XrcxWjtGqJMYb4w2j0Zm90cb/RShDG6HN9b9QVuzFKE1ndawJCzvnU%2BsTa6OD7FUAADnvgF%2B%2BkhiTICy3BjUVYIC4EINIrYEDeBfq0PMRY1775mA1Nfe9HBH2kBYDeu9S6V3nbfR%2Bw9x7Fh/sA8sAg9zwMQEgyB%2BgxBQj904Nd2793HvPc2K93gBZPv1b0PwCzohxA2YZ3ZlQ6gxNOdIC%2BJgCQdPg4XaQOHNXOC/jZFS0cJO7sPeAE9nVlO3seCg/j%2BuP3kffoB6QM9WAYiXrnRD3g0Pb1C%2BfQj2wSO/snqvTD8HmxTvw9fer/7x2OBmHtyLjgv2UeLFyykZwkggA%3D%3D");
                     }
-                    ImGui::Separator();
-                    {
-                        ImGui::BeginChild("Scroll");
-                        defer { ImGui::EndChild(); };
+                    ImGui::SameLine();
+                    ImGui::Text(")");
 
-                        ImGui::TextWrapped(defer_macro_code);
+                    ImGui::BulletText("");
+                    ImGui::SameLine();
+                    if (ImGui::Button("C++ memory management")) {
+                        open_link("https://github.com/WWilliams741/Utilities/tree/main/jai_langauge_concepts_in_cpp");
                     }
                 }
             }
