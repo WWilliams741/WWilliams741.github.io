@@ -377,7 +377,13 @@ int main(int, char**) {
                             ImGui::SetNextItemOpen(open_action != 0);
                         if (ImGui::TreeNode("Performance Aware Programming")) {
                             defer { ImGui::TreePop(); };
-                            IMGUI_BULLETTEXTWRAPPED("I am NOT afraid of memory and low level programming");
+                            IMGUI_BULLETTEXTWRAPPED("I am NOT afraid of ");
+                            ImGui::SameLine();
+                            if (ImGui::Button("memory")) {
+                                open_link("https://github.com/WWilliams741/Utilities/tree/main/jai_langauge_concepts_in_cpp");
+                            }
+                            ImGui::SameLine();
+                            ImGui::Text(" and low level programming");
                             IMGUI_BULLETTEXTWRAPPED("I am PRO creating custom allocators");
                             IMGUI_BULLETTEXTWRAPPED("I am PRO understanding how your program acesses memory and how that relates to CPU caches and RAM (L1, L2, L3, main memory cache misses and their costs)");
                             IMGUI_BULLETTEXTWRAPPED("I am PRO SUA (Shutup Use Array) 99%% of the time, and the last 1%% is usually a Hash Table");
