@@ -206,10 +206,19 @@ int main(int, char**) {
                         ImGui::BeginChild("Scroll");
                         defer { ImGui::EndChild(); };
 
-                        ImGui::TextWrapped("Contact Info:");
+                        ImGui::TextWrapped("Contact info:");
                         IMGUI_BULLETTEXTWRAPPED("Email:        walkerw97@gmail.com");
                         IMGUI_BULLETTEXTWRAPPED("Phone Number: +1 (919) 935-2397");
-                        // IMGUI_BULLETTEXTWRAPPED("GitHub:       +1 (919) 935-2397");
+                        IMGUI_BULLETTEXTWRAPPED("");
+                        ImGui::SameLine();
+                        if (ImGui::Button("LinkedIn")) {
+                            open_link("https://www.linkedin.com/in/walker-williams-02223a1a8");
+                        }
+                        IMGUI_BULLETTEXTWRAPPED("");
+                        ImGui::SameLine();
+                        if (ImGui::Button("GitHub")) {
+                            open_link("https://github.com/WWilliams741");
+                        }
                         ImGui::NewLine();
 
                         ImGui::TextWrapped("Hello, my name is Walker Williams. I am a very passionate programmer and this is my resume, written in C++, and put on the web for you, recruiter, potential employer, or casual viewer, to look through.");
@@ -223,12 +232,6 @@ int main(int, char**) {
                         if (ImGui::Button("Resume Code")) {
                             open_link("https://github.com/WWilliams741/WWilliams741.github.io");
                         }
-
-
-                        // ImGui::TextWrapped("Contact Info:");
-                        // IMGUI_BULLETTEXTWRAPPED("Phone Number: +1 (919) 935-2397");
-                        // IMGUI_BULLETTEXTWRAPPED("Email:        walkerw97@gmail.com");
-                        // IMGUI_BULLETTEXTWRAPPED("GitHub:       +1 (919) 935-2397");
                     }
                 }
                 // Skills:
