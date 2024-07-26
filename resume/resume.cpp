@@ -361,21 +361,33 @@ int main(int, char**) {
 
                         if (open_action != -1)
                             ImGui::SetNextItemOpen(open_action != 0);
-                        if (ImGui::TreeNode("Software Engineer - IBM                   (January   2024 -> Current)")) {
+                        if (ImGui::TreeNode("Software Engineer - IBM                       (January   2024 -> Current)")) {
                             defer { ImGui::TreePop(); };
 
-                            IMGUI_BULLETTEXTWRAPPED("Languages: C/C++");
+                            IMGUI_BULLETTEXTWRAPPED("Languages: C/C++, XML, XSL");
                             IMGUI_BULLETTEXTWRAPPED("Working as a backend developer for IBM's ");
                             ImGui::SameLine();
                             if (ImGui::Button("Datapower Gateway")) {
                                 open_link("https://www.ibm.com/products/datapower-gateway");
                             }
-                            IMGUI_BULLETTEXTWRAPPED("Maintaining and updating a 30+ year old legacy codebase");
+                            IMGUI_BULLETTEXTWRAPPED("Maintaining and updating a 20+ year old legacy C++ codebase, bug fixes especially");
+                            IMGUI_BULLETTEXTWRAPPED("Completing Salesforce cases by talking directly to customers, recreating their issues, then investigating code directly for solutions");
                         }
 
                         if (open_action != -1)
                             ImGui::SetNextItemOpen(open_action != 0);
-                        if (ImGui::TreeNode("Software Engineer - FlexGen Power Systems (September 2020 -> August 2023)")) {
+                        if (ImGui::TreeNode("Software Engineer - Chrysanthemum Productions (Auguest   2023 -> Current)")) {
+                            defer { ImGui::TreePop(); };
+                            IMGUI_BULLETTEXTWRAPPED("Languages: C/C++, Jai");
+                            IMGUI_BULLETTEXTWRAPPED("Working with a previous FlexGen employee, Sam Rappl, on a hydroponics startup");
+                            IMGUI_BULLETTEXTWRAPPED("Preliminary work is being done using Arduino Uno, Raspberry Pi, sensors, and custom circuits on a bread board");
+                            IMGUI_BULLETTEXTWRAPPED("We have already applied for two patents, and are applying for more");
+                            IMGUI_BULLETTEXTWRAPPED("Currently not off the ground yet, but will get there someday");
+                        }
+
+                        if (open_action != -1)
+                            ImGui::SetNextItemOpen(open_action != 0);
+                        if (ImGui::TreeNode("Software Engineer - FlexGen Power Systems     (September 2020 -> August 2023)")) {
                             defer { ImGui::TreePop(); };
 
                             IMGUI_BULLETTEXTWRAPPED("Languages: C/C++, golang, python, bash");
@@ -432,15 +444,7 @@ int main(int, char**) {
                             IMGUI_BULLETTEXTWRAPPED("If you're reading this you're viewing this project right now");
                             IMGUI_BULLETTEXTWRAPPED("NOTE: Each time you view this resume things might change, so check back every now and then");
                         }
-                        if (open_action != -1)
-                            ImGui::SetNextItemOpen(open_action != 0);
-                        if (ImGui::TreeNode("Hydroponics Startup - Currently Active")) {
-                            defer { ImGui::TreePop(); };
-                            IMGUI_BULLETTEXTWRAPPED("Working with a previous FlexGen employee, Sam Rappl, on a hydroponics startup");
-                            IMGUI_BULLETTEXTWRAPPED("Preliminary work is being done using Arduino Uno controllers, sensors, and custom circuits on a bread board");
-                            IMGUI_BULLETTEXTWRAPPED("We have already applied for two government grants, each worth $100,000+");
-                            IMGUI_BULLETTEXTWRAPPED("We have at least 4 people actively working on the project, with at least 12 people in total interested in it.");
-                        }
+
                         if (open_action != -1)
                             ImGui::SetNextItemOpen(open_action != 0);
                         if (ImGui::TreeNode("Jai Language Closed Beta - Currently Active")) {
